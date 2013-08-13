@@ -1,0 +1,52 @@
+<project name="Play Ebean Plugin" default="build" basedir=".">
+
+	<property name="ebean.version" value="3.2.3" />
+    <property name="ebean-agent.version" value="3.2.2" />
+
+    <path id="project.classpath">
+        <pathelement path="${play.path}/framework/classes"/>
+        <fileset dir="${play.path}/framework/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="ebean.classpath">
+        <pathelement path="${play.path}/framework/classes"/>
+    </path>
+
+    <property name="ebean.cp" refid="ebean.classpath"/>
+
+	<taskdef name="ebeanEnhance" classname="com.avaje.ebean.enhance.ant.AntEnhanceTask" classpath="${basedir}/lib/avaje-ebeanorm-agent-${ebean-agent.version}.jar" />
+
+    <target name="build" depends="clean,compile">
+        <copy todir="tmp/classes">
+            <fileset dir="src">
+                <include name="**/play.plugins"/>
+            </fileset>
+        </copy>
+        <jar destfile="lib/play-ebean.jar" basedir="tmp/classes">
+            <manifest>
+                <section name="Play">
+                    <attribute name="Specification-Title" value="Play Ebean Plugin"/>
+                </section>
+            </manifest>
+        </jar>
+        <delete dir="tmp" />
+    </target>
+
+	<target name="clean">
+		<delete dir="${basedir}/lib/" includes="play-ebean.jar"/>
+	</target>
+
+    <target name="compile">
+        <mkdir dir="tmp/classes" />
+        <javac srcdir="src" destdir="tmp/classes" target="1.5" source="1.5" debug="true">
+            <classpath refid="project.classpath" />
+        </javac>
+
+        <ebeanEnhance classpath="${ebean.cp}" classSource="${basedir}/tmp/classes" packages="play/modules/ebean" transformArgs="transientInternalFields=true;debug=1"/>
+    </target>
+</project>
