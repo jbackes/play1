@@ -86,6 +86,12 @@ repositories:
         contains:
             - play -> secure $version
 
+    - playCoreEbean:
+        type:       local
+        artifact:   "${play.path}/modules/ebean"
+        contains:
+            - play -> ebean $version
+
     - playModules:  
         type:       chain
         using:            
