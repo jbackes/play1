@@ -4,15 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
@@ -37,6 +29,7 @@ import com.avaje.ebean.Update;
 @MappedSuperclass
 public class EbeanSupport implements play.db.Model
 {
+	private transient List<EbeanSupport> detachedOneToManys = null;
 
   public static <T extends EbeanSupport> T create(Class<?> type, String name, Map<String, String[]> params, Annotation[] annotations)
   {
@@ -257,6 +250,9 @@ public class EbeanSupport implements play.db.Model
   public void _save()
   {
     ebean().save(this);
+    if(detachedOneToManys != null)
+        for(final EbeanSupport es: detachedOneToManys)
+            es.save();
     PlayPlugin.postEvent("JPASupport.objectPersisted", this);
   }
 
@@ -271,4 +267,10 @@ public class EbeanSupport implements play.db.Model
     return Model.Manager.factoryFor(this.getClass()).keyValue(this);
   }
 
+  protected void detachOneToMany(final EbeanSupport es) {
+    if(detachedOneToManys == null)
+      detachedOneToManys = new LinkedList<EbeanSupport>();
+
+    detachedOneToManys.add(es);
+  }
 }
