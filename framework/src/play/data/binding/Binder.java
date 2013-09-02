@@ -636,7 +636,7 @@ public abstract class Binder {
                 return clazz.isPrimitive() ? 0f : null;
             }
 
-            return Float.parseFloat(value);
+            return Float.parseFloat(value.replace(',', '.'));
         }
 
         // double or Double binding
@@ -645,12 +645,12 @@ public abstract class Binder {
                 return clazz.isPrimitive() ? 0d : null;
             }
 
-            return Double.parseDouble(value);
+            return Double.parseDouble(value.replace(',', '.'));
         }
 
         // BigDecimal binding
         if (clazz.equals(BigDecimal.class)) {
-            return nullOrEmpty ? null : new BigDecimal(value);
+            return nullOrEmpty ? null : new BigDecimal(value.replace(',', '.'));
         }
 
         // boolean or Boolean binding
