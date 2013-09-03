@@ -29,7 +29,8 @@ import com.avaje.ebean.Update;
 @MappedSuperclass
 public class EbeanSupport implements play.db.Model
 {
-	private transient List<EbeanSupport> detachedOneToManys = null;
+	private transient List<EbeanSupport> detachedManys = null;
+	private transient boolean isSaving = false;
 
   public static <T extends EbeanSupport> T create(Class<?> type, String name, Map<String, String[]> params, Annotation[] annotations)
   {
@@ -249,10 +250,13 @@ public class EbeanSupport implements play.db.Model
 
   public void _save()
   {
+		this.isSaving = true;
     ebean().save(this);
-    if(detachedOneToManys != null)
-        for(final EbeanSupport es: detachedOneToManys)
-            es.save();
+    if(detachedManys != null)
+        for(final EbeanSupport es: detachedManys)
+					  if(!es.isSaving)
+						    es.save();
+		this.isSaving = false;
     PlayPlugin.postEvent("JPASupport.objectPersisted", this);
   }
 
@@ -267,10 +271,10 @@ public class EbeanSupport implements play.db.Model
     return Model.Manager.factoryFor(this.getClass()).keyValue(this);
   }
 
-  protected void detachOneToMany(final EbeanSupport es) {
-    if(detachedOneToManys == null)
-      detachedOneToManys = new LinkedList<EbeanSupport>();
+  protected void detachMany(final EbeanSupport es) {
+    if(detachedManys == null)
+      detachedManys = new LinkedList<EbeanSupport>();
 
-    detachedOneToManys.add(es);
+    detachedManys.add(es);
   }
 }
