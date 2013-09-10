@@ -23,6 +23,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.sql.DataSource;
 
+import play.Invoker;
 import play.Logger;
 import play.Play;
 import play.PlayPlugin;
@@ -130,25 +131,61 @@ public class EbeanPlugin extends PlayPlugin
       }
     }
     EbeanContext.set(server);
+
+	final Transactional tx = Invoker.InvocationContext.current().getAnnotation(Transactional.class);
+
+	if(tx != null) {
+		server.beginTransaction(tx.mode());
+	}
   }
 
   @Override
   public void afterInvocation()
   {
-    EbeanServer ebean = EbeanContext.server();
-    if (ebean != null && ebean.currentTransaction() != null) ebean.commitTransaction();
+    final EbeanServer server = EbeanContext.server();
+    if (server != null) {
+	    final Transactional tx = Invoker.InvocationContext.current().getAnnotation(Transactional.class);
+
+	    if(tx != null) {
+		    if(server.currentTransaction() == null || !server.currentTransaction().isActive())
+			    Logger.warn("No active transaction after @Transactional block");
+		    else {
+			    server.commitTransaction();
+		    }
+	    } else {
+		    if(server.currentTransaction() != null && server.currentTransaction().isActive())
+			    Logger.warn("There is a non-commited transaction after invocation; rolling back...");
+
+		    server.endTransaction();
+	    }
+    }
   }
 
-  @Override
+	@Override
+	public void onInvocationException(Throwable e) {
+		final EbeanServer server = EbeanContext.server();
+		if(server != null) {
+			final Transactional tx = Invoker.InvocationContext.current().getAnnotation(Transactional.class);
+
+			if(tx != null && (server.currentTransaction() == null || !server.currentTransaction().isActive()))
+				Logger.warn("No active transaction after exception in @Transactional block");
+
+			server.endTransaction();
+		}
+	}
+
+	@Override
   public void invocationFinally()
   {
     EbeanServer ebean = null;
     try {
       ebean = EbeanContext.server();
     } catch(IllegalStateException e) {
-      Logger.error(e, "EbeanPlugin ending transaction in finally");
+	    Logger.error("No ebean server in finally");
     }
-    if (ebean != null) ebean.endTransaction();
+    if (ebean != null) {
+	    ebean.endTransaction();
+    }
     EbeanContext.set(null);
   }
 
