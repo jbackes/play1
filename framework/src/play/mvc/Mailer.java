@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.*;
 import play.Logger;
+import play.Play;
 import play.classloading.enhancers.LocalvariablesNamesEnhancer.LocalVariablesNamesTracer;
 import play.classloading.enhancers.LocalvariablesNamesEnhancer.LocalVariablesSupport;
 import play.exceptions.MailException;
@@ -194,9 +195,20 @@ public class Mailer implements LocalVariablesSupport {
             templateName = templateName.substring(0, templateName.indexOf("("));
             templateName = templateName.replace(".", "/");
 
-            // overrides Template name
+	        String locale = play.i18n.Lang.get();
+	        String localizedTemplateName = templateName;
+
+	        // overrides Template name
             if (args.length > 0 && args[0] instanceof String && LocalVariablesNamesTracer.getAllLocalVariableNames(args[0]).isEmpty()) {
-                templateName = args[0].toString();
+                localizedTemplateName = args[0].toString();
+	            templateName = localizedTemplateName;
+            } else {
+	            if(locale == null || locale.length() == 0)
+		            locale = "en";
+	            if(locale.length() > 2)
+		            locale = locale.substring(0, 2);
+
+	            localizedTemplateName = templateName + "." + locale;
             }
 
             final Map<String, Object> templateHtmlBinding = new HashMap<String, Object>();
@@ -219,21 +231,49 @@ public class Mailer implements LocalVariablesSupport {
             String bodyHtml = null;
             String bodyText = "";
             try {
-                Template templateHtml = TemplateLoader.load(templateName + ".html");
+                Template templateHtml = TemplateLoader.load(localizedTemplateName + ".html");
                 bodyHtml = templateHtml.render(templateHtmlBinding);
             } catch (TemplateNotFoundException e) {
-                if (contentType != null && !contentType.startsWith("text/plain")) {
-                    throw e;
-                }
+	            // try to load default HTML template
+	            try {
+		            Template templateHtml = TemplateLoader.load(templateName + "." + Play.configuration.getProperty("default_locale", "en")  + ".html");
+		            bodyHtml = templateHtml.render(templateHtmlBinding);
+	            }
+	            catch(TemplateNotFoundException e2) {
+		            // try to load default HTML template
+		            try {
+			            Template templateHtml = TemplateLoader.load(templateName + ".html");
+			            bodyHtml = templateHtml.render(templateHtmlBinding);
+		            }
+		            catch(TemplateNotFoundException e3) {
+			            if (contentType != null && !contentType.startsWith("text/plain")) {
+				            throw e;
+			            }
+		            }
+	            }
             }
 
             try {
-                Template templateText = TemplateLoader.load(templateName + ".txt");
+                Template templateText = TemplateLoader.load(localizedTemplateName + ".txt");
                 bodyText = templateText.render(templateTextBinding);
             } catch (TemplateNotFoundException e) {
-                if (bodyHtml == null && (contentType == null || contentType.startsWith("text/plain"))) {
-                    throw e;
-                }
+	            // try to load default TEXT template
+	            try {
+		            Template templateText = TemplateLoader.load(templateName + "." + Play.configuration.getProperty("default_locale", "en") + ".txt");
+		            bodyText = templateText.render(templateTextBinding);
+	            }
+	            catch(TemplateNotFoundException e2) {
+		            // try to load default TEXT template
+		            try {
+			            Template templateText = TemplateLoader.load(templateName + ".txt");
+			            bodyText = templateText.render(templateTextBinding);
+		            }
+		            catch(TemplateNotFoundException e3) {
+			            if(bodyHtml == null && (contentType == null || contentType.startsWith("text/plain"))) {
+				            throw e3;
+			            }
+		            }
+	            }
             }
 
             // Content type

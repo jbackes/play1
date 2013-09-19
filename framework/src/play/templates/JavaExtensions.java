@@ -22,6 +22,9 @@ import java.util.TimeZone;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
+import org.joda.time.base.AbstractInstant;
 import play.Logger;
 import play.i18n.Lang;
 import play.i18n.Messages;
@@ -178,6 +181,38 @@ public class JavaExtensions {
         df.setTimeZone(TimeZone.getTimeZone(timezone));
         return df.format(date);
     }
+
+	public static String format(DateTime date) {
+		return formatDateTime(date);
+	}
+
+	public static String format(DateMidnight date) {
+		return format(date.toDate());
+	}
+
+	public static String formatDate(AbstractInstant instant) {
+		return format(instant.toDate());
+	}
+
+	public static String formatDate(Date date) {
+		return format(date);
+	}
+
+	public static String formatDateTime(AbstractInstant instant) {
+		return formatDateTime(instant.toDate());
+	}
+
+	public static String formatDateTime(Date date) {
+		return new SimpleDateFormat(I18N.getDateTimeFormat(), Lang.getLocaleOrDefault(Lang.get())).format(date);
+	}
+
+	public static String formatTime(AbstractInstant instant) {
+		return formatTime(instant.toDate());
+	}
+
+	public static String formatTime(Date date) {
+		return new SimpleDateFormat(I18N.getTimeFormat(), Lang.getLocaleOrDefault(Lang.get())).format(date);
+	}
 
     public static Integer page(Number number, Integer pageSize) {
         return number.intValue() / pageSize + (number.intValue() % pageSize > 0 ? 1 : 0);
