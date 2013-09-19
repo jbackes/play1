@@ -173,4 +173,29 @@ public class I18N {
         return "yyyy-MM-dd";
     }
 
+	public static String getDateTimeFormat() {
+		final String localizedDateFormat = Play.configuration.getProperty("date_time.format." + Lang.get());
+		if (!StringUtils.isEmpty(localizedDateFormat)) {
+			return localizedDateFormat;
+		}
+		final String globalDateFormat = Play.configuration.getProperty("date_time.format");
+		if (!StringUtils.isEmpty(globalDateFormat)) {
+			return globalDateFormat;
+		}
+		// Default value. It's completely arbitrary.
+		return "yyyy-MM-dd h:mm a";
+	}
+
+	public static String getTimeFormat() {
+		final String localizedDateFormat = Play.configuration.getProperty("time.format." + Lang.get());
+		if (!StringUtils.isEmpty(localizedDateFormat)) {
+			return localizedDateFormat;
+		}
+		final String globalDateFormat = Play.configuration.getProperty("time.format");
+		if (!StringUtils.isEmpty(globalDateFormat)) {
+			return globalDateFormat;
+		}
+		// Default value. It's completely arbitrary.
+		return "h:mm a";
+	}
 }
