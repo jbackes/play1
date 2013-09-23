@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Target(value={ElementType.METHOD,ElementType.TYPE})
 public @interface Transactional {
 	public TxIsolation mode() default TxIsolation.DEFAULT;
+	public boolean explicitCommit() default false;
 }
-

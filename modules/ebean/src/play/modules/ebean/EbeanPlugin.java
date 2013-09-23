@@ -148,13 +148,19 @@ public class EbeanPlugin extends PlayPlugin
 
 	    if(tx != null) {
 		    if(server.currentTransaction() == null || !server.currentTransaction().isActive())
-			    Logger.warn("No active transaction after @Transactional block");
+			    if(!tx.explicitCommit())
+			        Logger.warn("No active transaction after an @Transactional(explicitCommit = false) block");
 		    else {
-			    server.commitTransaction();
+				if(tx.explicitCommit()) {
+			        server.rollbackTransaction();
+				}
+				else {
+					server.commitTransaction();
+				}
 		    }
 	    } else {
 		    if(server.currentTransaction() != null && server.currentTransaction().isActive())
-			    Logger.warn("There is a non-commited transaction after invocation; rolling back...");
+			    Logger.warn("There is a non-committed transaction after invocation; rolling back...");
 
 		    server.endTransaction();
 	    }
@@ -167,8 +173,8 @@ public class EbeanPlugin extends PlayPlugin
 		if(server != null) {
 			final Transactional tx = Invoker.InvocationContext.current().getAnnotation(Transactional.class);
 
-			if(tx != null && (server.currentTransaction() == null || !server.currentTransaction().isActive()))
-				Logger.warn("No active transaction after exception in @Transactional block");
+			if(tx != null && !tx.explicitCommit() && (server.currentTransaction() == null || !server.currentTransaction().isActive()))
+				Logger.warn("No active transaction after exception in @Transactional(explicitCommit = false) block");
 
 			server.endTransaction();
 		}
