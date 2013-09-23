@@ -102,12 +102,17 @@ public class Messages {
         if (value == null) {
             value = key.toString();
         }
-
-        return formatString(value, args);
+        Locale l = Lang.getLocaleOrDefault(locale);
+        return formatString(l, value, args);
     }
 
     public static String formatString(String value, Object... args) {
-        String message = String.format(Lang.getLocale(), value, coolStuff(value, args));
+        return formatString(Lang.getLocale(), value, args);
+    }
+
+    public static String formatString(Locale locale, String value, Object... args) {
+        String message = String.format(locale, value, coolStuff(value, args));
+
         Matcher matcher = recursive.matcher(message);
         StringBuffer sb = new StringBuffer();
         while(matcher.find()) {
