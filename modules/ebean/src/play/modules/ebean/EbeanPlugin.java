@@ -31,7 +31,7 @@ import play.classloading.ApplicationClasses.ApplicationClass;
 import play.data.binding.Binder;
 import play.db.DB;
 import play.db.Model;
-import play.db.Model.Property;
+import play.db.Model.ModelProperty;
 import play.db.jpa.JPAPlugin;
 import play.exceptions.UnexpectedException;
 import play.mvc.Http;
@@ -353,14 +353,14 @@ public class EbeanPlugin extends PlayPlugin
       deleteAll.execute();
     }
 
-    public List<Property> listProperties()
+    public List<ModelProperty> listProperties()
     {
       return listProperties(true);
     }
 
-    private List<Property> listProperties(boolean includeTransient)
+    private List<ModelProperty> listProperties(boolean includeTransient)
     {
-      List<Model.Property> properties = new ArrayList<Model.Property>();
+      List<Model.ModelProperty> properties = new ArrayList<Model.ModelProperty>();
       Set<Field> fields = new HashSet<Field>();
       Class<?> tclazz = modelClass;
       while (!tclazz.equals(Object.class)) {
@@ -374,7 +374,7 @@ public class EbeanPlugin extends PlayPlugin
         if (!includeTransient && (Modifier.isTransient(f.getModifiers()) || f.getAnnotation(javax.persistence.Transient.class) != null)) {
           continue;
         }
-        Model.Property mp = buildProperty(f);
+        Model.ModelProperty mp = buildProperty(f);
         if (mp != null) {
           properties.add(mp);
         }
@@ -401,9 +401,9 @@ public class EbeanPlugin extends PlayPlugin
       throw new UnexpectedException("Cannot get the object @Id for an object of type " + modelClass);
     }
 
-    Model.Property buildProperty(final Field field)
+    Model.ModelProperty buildProperty(final Field field)
     {
-      Model.Property modelProperty = new Model.Property();
+      Model.ModelProperty modelProperty = new Model.ModelProperty();
       modelProperty.type = field.getType();
       modelProperty.field = field;
       if (Model.class.isAssignableFrom(field.getType())) {
@@ -494,7 +494,7 @@ public class EbeanPlugin extends PlayPlugin
     String getSearchQuery(List<String> searchFields)
     {
       String q = "";
-      for (Model.Property property : listProperties(false)) {
+      for (Model.ModelProperty property : listProperties(false)) {
         if (property.isSearchable && (searchFields == null || searchFields.isEmpty() || searchFields.contains(property.name))) {
           if (!q.equals("")) {
             q += " or ";

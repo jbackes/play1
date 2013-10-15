@@ -12,7 +12,7 @@ public interface Model {
     public void _delete();
     public Object _key();
 
-    public static class Property {
+    public static class ModelProperty {
 
         public String name;
         public Class<?> type;
@@ -41,7 +41,7 @@ public interface Model {
         public List<Model> fetch(int offset, int length, String orderBy, String orderDirection, List<String> properties, String keywords, String where);
         public Long count(List<String> properties, String keywords, String where);
         public void deleteAll();
-        public List<Model.Property> listProperties();
+        public List<Model.ModelProperty> listProperties();
 
     }
 
