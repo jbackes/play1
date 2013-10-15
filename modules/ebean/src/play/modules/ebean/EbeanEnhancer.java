@@ -71,7 +71,7 @@ public class EbeanEnhancer extends Enhancer
     ctClass.addMethod(CtMethod.make("public static java.util.List findAll() { return ebean().createQuery(" + entityName + ".class).findList(); }", ctClass));
 
     // findById
-    ctClass.addMethod(CtMethod.make("public static play.modules.ebean.EbeanSupport findById(Object id) { return (" + entityName + ") ebean().find(" + entityName + ".class, id); }", ctClass));
+    ctClass.addMethod(CtMethod.make("public static play.modules.ebean.EbeanSupport findById(Object id) { return id == null ? null : (" + entityName + ") ebean().find(" + entityName + ".class, id); }", ctClass));
 
     // findUnique
     ctClass.addMethod(CtMethod.make("public static play.modules.ebean.EbeanSupport findUnique(String query, Object[] params) { return (" + entityName + ") createQuery(" + entityName + ".class,query,params).findUnique(); }", ctClass));
