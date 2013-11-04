@@ -503,8 +503,35 @@ public class ActionInvoker {
         }
     }
 
-    static Object invoke(Method method, Object instance, Object[] realArgs) throws Exception {
+    static Object invoke(final Method method, final Object instance, final Object[] realArgs) throws Exception {
         if(isActionMethod(method)) {
+			if(method.isAnnotationPresent(WrapIn.class)) {
+				final WrapIn ann = method.getAnnotation(WrapIn.class);
+
+				ActionExecutor ae = new ActionExecutor() {
+					public Object execute() throws Exception {
+						return invokeWithContinuation(method, instance, realArgs);
+					}
+				};
+
+				if(ann.value() != null && ann.value().length > 0) {
+					for(int i = 0; i < ann.value().length; i++) {
+						final Class<?> clazz = ann.value()[i];
+						if(!ActionWrapper.class.isAssignableFrom(clazz))
+							continue;
+						final ActionWrapper wrapper = (ActionWrapper) clazz.newInstance();
+						final ActionExecutor oldExecutor = ae;
+
+						ae = new ActionExecutor() {
+							public Object execute() throws Exception {
+								return wrapper.execute(oldExecutor);
+							}
+						};
+					}
+				}
+
+				return ae.execute();
+			}
             return invokeWithContinuation(method, instance, realArgs);
         } else {
             return method.invoke(instance, realArgs);
