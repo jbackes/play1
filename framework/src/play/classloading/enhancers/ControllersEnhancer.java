@@ -61,7 +61,7 @@ public class ControllersEnhancer extends Enhancer {
             // Auto-redirect
             boolean isHandler = false;
             for (Annotation a : getAnnotations(ctMethod).getAnnotations()) {
-                if (a.getTypeName().startsWith("play.mvc.")) {
+                if (a.getTypeName().startsWith("play.mvc.") /* PELOBA */ && !a.getTypeName().contains("WrapIn")) {
                     isHandler = true;
                     break;
                 }
