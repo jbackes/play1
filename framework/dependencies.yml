@@ -92,6 +92,12 @@ repositories:
         contains:
             - play -> ebean $version
 
+    - playCoreLess:
+        type:       local
+        artifact:   "${play.path}/modules/less"
+        contains:
+            - play -> less $version
+
     - playModules:  
         type:       chain
         using:            
