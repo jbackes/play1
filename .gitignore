@@ -143,6 +143,7 @@ samples-and-tests/zencontact/precompiled
 !modules/secure
 !modules/testrunner
 !modules/ebean
+!modules/less
 !framework/src/play/db
 .idea
 *~

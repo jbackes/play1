@@ -1,0 +1,10 @@
+bin
+eclipse
+test-result
+samples-and-tests/*/modules
+lib/play-less.jar
+dist
+tmp
+.project
+.classpath
+.settings

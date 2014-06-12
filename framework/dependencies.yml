@@ -93,6 +93,12 @@ repositories:
         contains:
             - play -> docviewer $version
 
+    - playCoreLess:
+        type:       local
+        artifact:   "${play.path}/modules/less"
+        contains:
+            - play -> less $version
+
     - playModules:  
         type:       chain
         using:            
