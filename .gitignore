@@ -112,6 +112,7 @@ help
 *.iws
 modules/router/lib/router.jar
 modules/grizzly/lib/play-grizzly.jar
+modules/ebean/lib/play-ebean.jar
 play.ipr
 play.iws
 *iml
@@ -141,6 +142,7 @@ samples-and-tests/zencontact/precompiled
 !modules/grizzly
 !modules/secure
 !modules/testrunner
+!modules/ebean
 !framework/src/play/db
 .idea
 *~
