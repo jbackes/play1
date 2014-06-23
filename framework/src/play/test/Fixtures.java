@@ -482,9 +482,9 @@ public class Fixtures {
         // @Embedded are not managed by the JPA plugin
         // This is not the nicest way of doing things.
          //modelFields =  Model.Manager.factoryFor(type).listProperties();
-        final List<Model.Property> modelFields =  new JPAPlugin.JPAModelLoader(type).listProperties();
+        final List<Model.ModelProperty> modelFields =  new JPAPlugin.JPAModelLoader(type).listProperties();
 
-        for (Model.Property field : modelFields) {
+        for (Model.ModelProperty field : modelFields) {
             // If we have a relation, get the matching object
             if (field.isRelation) {
                 // These are the Ids that were set in the yml file (i.e person(nicolas)-> nicolas is the id)

@@ -355,7 +355,7 @@ public class JPAPlugin extends PlayPlugin {
     public static class JPAModelLoader implements Model.Factory {
 
         private Class<? extends Model> clazz;
-        private Map<String, Model.Property> properties;
+        private Map<String, Model.ModelProperty> properties;
 
 
         public JPAModelLoader(Class<? extends Model> clazz) {
@@ -428,8 +428,8 @@ public class JPAPlugin extends PlayPlugin {
             JPA.em().createQuery("delete from " + clazz.getName()).executeUpdate();
         }
 
-        public List<Model.Property> listProperties() {
-            List<Model.Property> properties = new ArrayList<Model.Property>();
+        public List<Model.ModelProperty> listProperties() {
+            List<Model.ModelProperty> properties = new ArrayList<Model.ModelProperty>();
             Set<Field> fields = new LinkedHashSet<Field>();
             Class<?> tclazz = clazz;
             while (!tclazz.equals(Object.class)) {
@@ -450,7 +450,7 @@ public class JPAPlugin extends PlayPlugin {
                         continue;
                     }
                 }
-                Model.Property mp = buildProperty(f);
+                Model.ModelProperty mp = buildProperty(f);
                 if (mp != null) {
                     properties.add(mp);
                 }
@@ -506,7 +506,7 @@ public class JPAPlugin extends PlayPlugin {
             synchronized(this){
                 if(properties != null)
                     return;
-                properties = new HashMap<String,Model.Property>();
+                properties = new HashMap<String,Model.ModelProperty>();
                 Set<Field> fields = getModelFields(clazz);
                 for (Field f : fields) {
                     if (Modifier.isTransient(f.getModifiers())) {
@@ -515,7 +515,7 @@ public class JPAPlugin extends PlayPlugin {
                     if (f.isAnnotationPresent(Transient.class)) {
                         continue;
                     }
-                    Model.Property mp = buildProperty(f);
+                    Model.ModelProperty mp = buildProperty(f);
                     if (mp != null) {
                         properties.put(mp.name, mp);
                     }
@@ -536,7 +536,7 @@ public class JPAPlugin extends PlayPlugin {
                 // skip the "class" property...
                 if(idPropertyName.equals("class"))
                     continue;
-                Model.Property modelProperty = this.properties.get(idPropertyName);
+                Model.ModelProperty modelProperty = this.properties.get(idPropertyName);
                 if(modelProperty == null)
                     throw new UnexpectedException("Composite id property missing: "+clazz.getName()+"."+idPropertyName
                             +" (defined in IdClass "+idClass.getName()+")");
@@ -659,7 +659,7 @@ public class JPAPlugin extends PlayPlugin {
 
         String getSearchQuery(List<String> searchFields) {
             String q = "";
-            for (Model.Property property : listProperties()) {
+            for (Model.ModelProperty property : listProperties()) {
                 if (property.isSearchable && (searchFields == null || searchFields.isEmpty() ? true : searchFields.contains(property.name))) {
                     if (!q.equals("")) {
                         q += " or ";
@@ -670,8 +670,8 @@ public class JPAPlugin extends PlayPlugin {
             return q;
         }
 
-        Model.Property buildProperty(final Field field) {
-            Model.Property modelProperty = new Model.Property();
+        Model.ModelProperty buildProperty(final Field field) {
+            Model.ModelProperty modelProperty = new Model.ModelProperty();
             modelProperty.type = field.getType();
             modelProperty.field = field;
             if (Model.class.isAssignableFrom(field.getType())) {
