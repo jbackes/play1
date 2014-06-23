@@ -93,6 +93,12 @@ repositories:
         contains:
             - play -> docviewer $version
 
+    - playCoreEbean:
+        type:       local
+        artifact:   "${play.path}/modules/ebean"
+        contains:
+            - play -> ebean $version
+
     - playCoreLess:
         type:       local
         artifact:   "${play.path}/modules/less"
