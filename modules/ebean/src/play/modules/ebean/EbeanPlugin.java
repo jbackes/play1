@@ -1,28 +1,10 @@
 package play.modules.ebean;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.sql.DataSource;
-
+import com.avaje.ebean.EbeanServer;
+import com.avaje.ebean.EbeanServerFactory;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.Update;
+import com.avaje.ebean.config.ServerConfig;
 import play.Invoker;
 import play.Logger;
 import play.Play;
@@ -34,14 +16,17 @@ import play.db.Model;
 import play.db.Model.ModelProperty;
 import play.db.jpa.JPAPlugin;
 import play.exceptions.UnexpectedException;
+import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.EbeanServerFactory;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.Update;
-import com.avaje.ebean.config.ServerConfig;
+import javax.persistence.*;
+import javax.sql.DataSource;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
 
 public class EbeanPlugin extends PlayPlugin
 {
@@ -506,4 +491,15 @@ public class EbeanPlugin extends PlayPlugin
     }
   }
 
+	private Filter filter = new Filter<Object>("EbeanFilter") {
+		@Override
+		public Object withinFilter(F.Function0<Object> objectFunction0) throws Throwable {
+			return objectFunction0.apply();
+		}
+	};
+
+	@Override
+	public Filter getFilter() {
+		return filter;
+	}
 }
