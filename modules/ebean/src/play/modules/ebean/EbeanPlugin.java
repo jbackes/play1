@@ -462,7 +462,7 @@ public class EbeanPlugin extends PlayPlugin
           @SuppressWarnings("unchecked")
           public List<Object> list()
           {
-            return Arrays.asList(field.getType().getEnumConstants());
+            return Arrays.<Object>asList(field.getType().getEnumConstants());
           }
         };
       }
