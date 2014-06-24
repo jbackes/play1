@@ -1,24 +1,21 @@
 package play.db;
 
+import org.hibernate.internal.SessionImpl;
+import play.Logger;
+import play.db.jpa.JPA;
+import play.exceptions.DatabaseException;
+
+import javax.sql.DataSource;
+import javax.sql.RowSet;
+import javax.sql.rowset.CachedRowSet;
+import javax.sql.rowset.RowSetProvider;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import java.util.HashMap;
 import java.util.Map;
-import javax.sql.DataSource;
-import javax.sql.RowSet;
-import javax.sql.rowset.CachedRowSet;
-
-import org.hibernate.internal.SessionImpl;
-
-import com.sun.rowset.CachedRowSetImpl;
-
-import play.db.jpa.JPA;
-import play.exceptions.DatabaseException;
-import play.Logger;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -222,7 +219,7 @@ public class DB {
             }
             
             // Need to use a CachedRowSet that caches its rows in memory, which makes it possible to operate without always being connected to its data source
-            CachedRowSet rowset = new CachedRowSetImpl();
+            CachedRowSet rowset = RowSetProvider.newFactory().createCachedRowSet();
             rowset.populate(rs);
             return rowset;     
         } catch (SQLException ex) {
