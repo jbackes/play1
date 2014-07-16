@@ -118,14 +118,13 @@ public class JPAPlugin extends PlayPlugin {
      * Reads the configuration file and initialises required JPA EntityManagerFactories.
      */
     @Override
-    public void onApplicationStart() {
-        
-        
+    public void onApplicationStart() {  
         org.hibernate.ejb.HibernatePersistence persistence = new org.hibernate.ejb.HibernatePersistence();
-        // Update the configuration
-        Play.configuration = Configuration.convertToMultiDB(Play.configuration);
-                         
-        for (String dbName : Configuration.getDbNames(Play.configuration)) {
+
+        Set<String> dBNames = Configuration.getDbNames();
+        for (String dbName : dBNames) {
+            Configuration dbConfig = new Configuration(dbName);
+            
             Ejb3Configuration cfg = new Ejb3Configuration();
             List<Class> classes = Play.classloader.getAnnotatedClasses(Entity.class);
             for (Class<?> clazz : classes) {
@@ -141,28 +140,61 @@ public class JPAPlugin extends PlayPlugin {
                     }                    
                 }
             }
+            
+            // Add entities
+            String[] moreEntities = Play.configuration.getProperty("jpa.entities", "").split(", ");
+            for (String entity : moreEntities) {
+                if (entity.trim().equals("")) {
+                    continue;
+                }
+                try {
+                    Class<?> clazz = Play.classloader.loadClass(entity);  
+                    // Do we have a transactional annotation matching our dbname?
+                    PersistenceUnit pu = clazz.getAnnotation(PersistenceUnit.class);
+                    if (pu != null && pu.name().equals(dbName)) {
+                      cfg.addAnnotatedClass(clazz);
+                      Logger.debug("Add JPA Model : %s to db %s", clazz, dbName);
+                    } else if (pu == null && JPA.DEFAULT.equals(dbName)) {
+                      cfg.addAnnotatedClass(clazz);
+                      Logger.debug("Add JPA Model : %s to db %s", clazz, dbName);
+                    }         
+                } catch (Exception e) {
+                    Logger.warn("JPA -> Entity not found: %s", entity);
+                }
+            }
+            
+            for (ApplicationClass applicationClass : Play.classes.all()) {
+                if (applicationClass.isClass() || applicationClass.javaPackage == null) {
+                    continue;
+                }
+                Package p = applicationClass.javaPackage;
+                Logger.info("JPA -> Adding package: %s", p.getName());
+                cfg.addPackage(p.getName());
+            }
 
+            String mappingFile = dbConfig.getProperty("jpa.mapping-file", "");
+            if (mappingFile != null && mappingFile.length() > 0) {
+                cfg.addResource(mappingFile);
+            }
 
-            if (!Play.configuration.getProperty("jpa.ddl", Play.mode.isDev() ? "update" : "none").equals("none")) {
-                cfg.setProperty("hibernate.hbm2ddl.auto", Play.configuration.getProperty("jpa.ddl", "update"));
+            if (!dbConfig.getProperty("jpa.ddl", Play.mode.isDev() ? "update" : "none").equals("none")) {
+                cfg.setProperty("hibernate.hbm2ddl.auto", dbConfig.getProperty("jpa.ddl", "update"));
             }
           
-            Map<String, String> properties = Configuration.getProperties(dbName);
+            Map<String, String> properties = dbConfig.getProperties();
             properties.put("javax.persistence.transaction", "RESOURCE_LOCAL");
             properties.put("javax.persistence.provider", "org.hibernate.ejb.HibernatePersistence");
-            properties.put("hibernate.dialect", getDefaultDialect(Play.configuration, dbName, Play.configuration.getProperty("db."+ dbName + ".driver")));
+            properties.put("hibernate.dialect", getDefaultDialect(dbConfig, dbConfig.getProperty("db.driver")));
             
-             if (Play.configuration.getProperty("jpa." + dbName + ".debugSQL", "false").equals("true")) {
+             if (dbConfig.getProperty("jpa.debugSQL", "false").equals("true")) {
                 org.apache.log4j.Logger.getLogger("org.hibernate.SQL").setLevel(Level.ALL);
             } else {
                 org.apache.log4j.Logger.getLogger("org.hibernate.SQL").setLevel(Level.OFF);
             }
 
-            cfg.configure(Configuration.addHibernateProperties(properties, dbName));
+            cfg.configure(properties);
             cfg.setDataSource(DB.getDataSource(dbName));
           
-            JPA.emfs.put(dbName, cfg.buildEntityManagerFactory());
-            
             try {
                 Field field = cfg.getClass().getDeclaredField("overridenClassLoader");
                 field.setAccessible(true);
@@ -172,16 +204,22 @@ public class JPAPlugin extends PlayPlugin {
             }
             
             cfg.setInterceptor(new HibernateInterceptor());
+
+            if (Logger.isTraceEnabled()) {
+                Logger.trace("Initializing JPA for %s...", dbName);
+            }
+
+            JPA.emfs.put(dbName, cfg.buildEntityManagerFactory());
         }
         JPQL.instance = new JPQL();
     }
 
     public static String getDefaultDialect(String driver) {
-        return getDefaultDialect(Play.configuration, "default", driver);
+        return getDefaultDialect(new Configuration("default"), driver);
     }
 
-    public static String getDefaultDialect(Properties p, String dbName, String driver) {
-        String dialect = p.getProperty("jpa." + dbName + ".dialect");
+    public static String getDefaultDialect(Configuration dbConfig, String driver) {
+        String dialect = dbConfig.getProperty("jpa.dialect");
         if (dialect != null) {
             return dialect;
         } else if ("org.h2.Driver".equals(driver)) {
