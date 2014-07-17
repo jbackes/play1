@@ -1,5 +1,9 @@
 package play;
 
+import org.apache.log4j.*;
+import org.apache.log4j.xml.DOMConfigurator;
+import play.exceptions.PlayException;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -10,14 +14,6 @@ import java.util.Properties;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.Priority;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.xml.DOMConfigurator;
-
-import play.exceptions.PlayException;
 
 /**
  * Main logger of the application.
@@ -554,7 +550,7 @@ public class Logger {
                     if (se.getClassName().startsWith("java.lang.reflect.")) {
                         continue; // not very interesting
                     }
-                    if (se.getClassName().startsWith("com.mchange.v2.c3p0.")) {
+                    if (se.getClassName().startsWith("com.zaxxer.hikari.")) {
                         continue; // not very interesting
                     }
                     if (se.getClassName().startsWith("scala.tools.")) {

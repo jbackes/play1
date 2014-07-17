@@ -1,40 +1,26 @@
 package play.db;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import jregex.Matcher;
+import org.apache.commons.lang.StringUtils;
 import play.Logger;
 import play.Play;
 import play.PlayPlugin;
+import play.db.DB.ExtendedDatasource;
 import play.exceptions.DatabaseException;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.ConnectionCustomizer;
-
-import play.db.DB.ExtendedDatasource;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.*;
+import java.util.*;
 /**
  * The DB plugin
  */
@@ -130,43 +116,53 @@ public class DBPlugin extends PlayPlugin {
                             }
                         }
 
-                        System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
-                        System.setProperty("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "OFF");
-                        
-                        ComboPooledDataSource ds = new ComboPooledDataSource();
-                        ds.setDriverClass(dbConfig.getProperty("db.driver"));
-                        ds.setJdbcUrl(dbConfig.getProperty("db.url"));
-                        ds.setUser(dbConfig.getProperty("db.user"));
-                        ds.setPassword(dbConfig.getProperty("db.pass"));
-                        ds.setAcquireRetryAttempts(10);
-                        ds.setCheckoutTimeout(Integer.parseInt(dbConfig.getProperty("db.pool.timeout", "5000")));
-                        ds.setBreakAfterAcquireFailure(false);
-                        ds.setMaxPoolSize(Integer.parseInt(dbConfig.getProperty("db.pool.maxSize", "30")));
-                        ds.setMinPoolSize(Integer.parseInt(dbConfig.getProperty("db.pool.minSize", "1")));
-                        ds.setMaxIdleTimeExcessConnections(Integer.parseInt(dbConfig.getProperty("db.pool.maxIdleTimeExcessConnections", "0")));
-                        ds.setIdleConnectionTestPeriod(10);
-                        ds.setTestConnectionOnCheckin(true);
+                        //System.setProperty("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
+                        //System.setProperty("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "OFF");
 
-                        if (dbConfig.getProperty("db.testquery") != null) {
-                            ds.setPreferredTestQuery(dbConfig.getProperty("db.testquery"));
-                        } else {
-                            String driverClass = dbConfig.getProperty("db.driver");
-                            /*
-                             * Pulled from http://dev.mysql.com/doc/refman/5.5/en/connector-j-usagenotes-j2ee-concepts-connection-pooling.html
-                             * Yes, the select 1 also needs to be in there.
-                             */
-                            if (driverClass.equals("com.mysql.jdbc.Driver")) {
-                                ds.setPreferredTestQuery("/* ping */ SELECT 1");
-                            }
-                        }
+	                    HikariConfig hc = new HikariConfig();
+	                    hc.setDriverClassName(dbConfig.getProperty("db.driver"));
+                        hc.setJdbcUrl(dbConfig.getProperty("db.url"));
+                        hc.setUsername(dbConfig.getProperty("db.user"));
+                        hc.setPassword(dbConfig.getProperty("db.pass"));
 
-                        // This check is not required, but here to make it clear that nothing changes for people
-                        // that don't set this configuration property. It may be safely removed.
-                        if(dbConfig.getProperty("db.isolation") != null) {
-                            ds.setConnectionCustomizerClassName(play.db.DBPlugin.PlayConnectionCustomizer.class.getName());
-                        }
-                       
-                        // Current datasource. This is actually deprecated. 
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.autoCommit")))
+		                    hc.setAutoCommit(Boolean.parseBoolean(dbConfig.getProperty("db.autoCommit")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.readOnly")))
+		                    hc.setReadOnly(Boolean.parseBoolean(dbConfig.getProperty("db.readOnly")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.transactionIsolation")))
+		                    hc.setTransactionIsolation(dbConfig.getProperty("db.transactionIsolation"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.catalog")))
+		                    hc.setCatalog(dbConfig.getProperty("db.catalog"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionTimeout")))
+		                    hc.setConnectionTimeout(Long.parseLong(dbConfig.getProperty("db.connectionTimeout")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.idleTimeout")))
+		                    hc.setIdleTimeout(Long.parseLong(dbConfig.getProperty("db.idleTimeout")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.maxLifetime")))
+		                    hc.setMaxLifetime(Long.parseLong(dbConfig.getProperty("db.maxLifetime")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.leakDetectionThreshold")))
+		                    hc.setLeakDetectionThreshold(Long.parseLong(dbConfig.getProperty("db.leakDetectionThreshold")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.initializationFailFast")))
+		                    hc.setInitializationFailFast(Boolean.parseBoolean(dbConfig.getProperty("db.initializationFailFast")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.jdbc4ConnectionTest")))
+		                    hc.setJdbc4ConnectionTest(Boolean.parseBoolean(dbConfig.getProperty("db.jdbc4ConnectionTest")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionTestQuery")))
+		                    hc.setConnectionTestQuery(dbConfig.getProperty("db.connectionTestQuery"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionInitSql")))
+		                    hc.setConnectionInitSql(dbConfig.getProperty("db.connectionInitSql"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.minimumIdle")))
+		                    hc.setMinimumIdle(Integer.parseInt(dbConfig.getProperty("db.minimumIdle")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.maximumPoolSize")))
+		                    hc.setMaximumPoolSize(Integer.parseInt(dbConfig.getProperty("db.maximumPoolSize")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.poolName")))
+		                    hc.setPoolName(dbConfig.getProperty("db.poolName"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.registerMbeans")))
+		                    hc.setRegisterMbeans(Boolean.parseBoolean(dbConfig.getProperty("db.registerMbeans")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.isolateInternalQueries")))
+		                    hc.setIsolateInternalQueries(Boolean.parseBoolean(dbConfig.getProperty("db.isolateInternalQueries")));
+
+	                    HikariDataSource ds = new HikariDataSource(hc);
+
+	                    // Current datasource. This is actually deprecated.
                         String destroyMethod = dbConfig.getProperty("db.destroyMethod", "");
                         DB.datasource = ds;
                         DB.destroyMethod = destroyMethod;
@@ -213,26 +209,24 @@ public class DBPlugin extends PlayPlugin {
                
         for (String dbName : dbNames) {
             DataSource ds = DB.getDataSource(dbName);
-            if (ds == null || !(ds instanceof ComboPooledDataSource)) {
+            if (!(ds instanceof HikariDataSource)) {
                 out.println("Datasource:");
                 out.println("~~~~~~~~~~~");
                 out.println("(not yet connected)");
                 return sw.toString();
             }
-            ComboPooledDataSource datasource = (ComboPooledDataSource) ds;
+	        HikariDataSource datasource = (HikariDataSource) ds;
             out.println("Datasource (" + dbName + "):");
             out.println("~~~~~~~~~~~");
             out.println("Jdbc url: " + datasource.getJdbcUrl());
-            out.println("Jdbc driver: " + datasource.getDriverClass());
-            out.println("Jdbc user: " + datasource.getUser());
+            out.println("Jdbc user: " + datasource.getUsername());
     	    if (Play.mode.isDev()) {
               out.println("Jdbc password: " + datasource.getPassword());
             }
-            out.println("Min pool size: " + datasource.getMinPoolSize());
-            out.println("Max pool size: " + datasource.getMaxPoolSize());
-            out.println("Initial pool size: " + datasource.getInitialPoolSize());
-            out.println("Checkout timeout: " + datasource.getCheckoutTimeout());
-            out.println("Test query : " + datasource.getPreferredTestQuery());
+            out.println("Max pool size: " + datasource.getMaximumPoolSize());
+            out.println("Connection timeout: " + datasource.getConnectionTimeout());
+	        out.println("Connection idle: " + datasource.getIdleTimeout());
+            out.println("Test query : " + datasource.getConnectionTestQuery());
             out.println("\r\n");
         }
         return sw.toString();
@@ -335,14 +329,11 @@ public class DBPlugin extends PlayPlugin {
             if (ds == null) {
                 return true;
             } else {
-                ComboPooledDataSource cds = (ComboPooledDataSource) ds;
-                if (!dbConfig.getProperty("db.driver").equals(cds.getDriverClass())) {
-                    return true;
-                }
+                HikariDataSource cds = (HikariDataSource) ds;
                 if (!dbConfig.getProperty("db.url").equals(cds.getJdbcUrl())) {
                     return true;
                 }
-                if (!dbConfig.getProperty("db.user", "").equals(cds.getUser())) {
+                if (!dbConfig.getProperty("db.user", "").equals(cds.getUsername())) {
                     return true;
                 }
                 if (!dbConfig.getProperty("db.pass", "").equals(cds.getPassword())) {
@@ -423,57 +414,6 @@ public class DBPlugin extends PlayPlugin {
                 return (java.util.logging.Logger) Driver.class.getDeclaredMethod("getParentLogger").invoke(this.driver);
             } catch (Throwable e) {
                 return null;
-            }
-        }
-    }
-
-    public static class PlayConnectionCustomizer implements ConnectionCustomizer {
-
-        public static Map<String, Integer> isolationLevels;
-
-        static {
-            isolationLevels = new HashMap<String, Integer>();
-            isolationLevels.put("NONE", Connection.TRANSACTION_NONE);
-            isolationLevels.put("READ_UNCOMMITTED", Connection.TRANSACTION_READ_UNCOMMITTED);
-            isolationLevels.put("READ_COMMITTED", Connection.TRANSACTION_READ_COMMITTED);
-            isolationLevels.put("REPEATABLE_READ", Connection.TRANSACTION_REPEATABLE_READ);
-            isolationLevels.put("SERIALIZABLE", Connection.TRANSACTION_SERIALIZABLE);
-        }
-
-        public void onAcquire(Connection c, String parentDataSourceIdentityToken) {
-            Integer isolation = getIsolationLevel();
-            if (isolation != null) {
-                try {
-                    Logger.trace("Setting connection isolation level to %s", isolation);
-                    c.setTransactionIsolation(isolation);
-                } catch (SQLException e) {
-                    throw new DatabaseException("Failed to set isolation level to " + isolation, e);
-                }
-            }
-        }
-
-        public void onDestroy(Connection c, String parentDataSourceIdentityToken) {}
-        public void onCheckOut(Connection c, String parentDataSourceIdentityToken) {}
-        public void onCheckIn(Connection c, String parentDataSourceIdentityToken) {}
-
-        /**
-         * Get the isolation level from either the isolationLevels map, or by
-         * parsing into an int.
-         */
-        private Integer getIsolationLevel() {
-            String isolation = Play.configuration.getProperty("db.isolation");
-            if (isolation == null) {
-                return null;
-            }
-            Integer level = isolationLevels.get(isolation);
-            if (level != null) {
-                return level;
-            }
-
-            try {
-                return Integer.valueOf(isolation);
-            } catch (NumberFormatException e) {
-                throw new DatabaseException("Invalid isolation level configuration" + isolation, e);
             }
         }
     }
