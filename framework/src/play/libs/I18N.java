@@ -1,10 +1,11 @@
 package play.libs;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import play.Play;
 import play.i18n.Lang;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * I18N utils
@@ -161,39 +162,51 @@ public class I18N {
     }
 
     public static String getDateFormat() {
-        final String localizedDateFormat = Play.configuration.getProperty("date.format." + Lang.get());
-        if (!StringUtils.isEmpty(localizedDateFormat)) {
-            return localizedDateFormat;
+        String localizedFormat = Play.configuration.getProperty("date.format." + Lang.get());
+        if (!StringUtils.isEmpty(localizedFormat)) {
+            return localizedFormat;
         }
-        final String globalDateFormat = Play.configuration.getProperty("date.format");
-        if (!StringUtils.isEmpty(globalDateFormat)) {
-            return globalDateFormat;
+	    localizedFormat = Play.configuration.getProperty("date.format." + Lang.get().substring(0, 2));
+	    if (!StringUtils.isEmpty(localizedFormat)) {
+		    return localizedFormat;
+	    }
+	    final String globalFormat = Play.configuration.getProperty("date.format");
+        if (!StringUtils.isEmpty(globalFormat)) {
+            return globalFormat;
         }
         // Default value. It's completely arbitrary.
         return "yyyy-MM-dd";
     }
 
 	public static String getDateTimeFormat() {
-		final String localizedDateFormat = Play.configuration.getProperty("date_time.format." + Lang.get());
-		if (!StringUtils.isEmpty(localizedDateFormat)) {
-			return localizedDateFormat;
+		String localizedFormat = Play.configuration.getProperty("date_time.format." + Lang.get());
+		if (!StringUtils.isEmpty(localizedFormat)) {
+			return localizedFormat;
 		}
-		final String globalDateFormat = Play.configuration.getProperty("date_time.format");
-		if (!StringUtils.isEmpty(globalDateFormat)) {
-			return globalDateFormat;
+		localizedFormat = Play.configuration.getProperty("date_time.format." + Lang.get().substring(0, 2));
+		if (!StringUtils.isEmpty(localizedFormat)) {
+			return localizedFormat;
+		}
+		final String globalFormat = Play.configuration.getProperty("date_time.format");
+		if (!StringUtils.isEmpty(globalFormat)) {
+			return globalFormat;
 		}
 		// Default value. It's completely arbitrary.
 		return "yyyy-MM-dd h:mm a";
 	}
 
 	public static String getTimeFormat() {
-		final String localizedDateFormat = Play.configuration.getProperty("time.format." + Lang.get());
-		if (!StringUtils.isEmpty(localizedDateFormat)) {
-			return localizedDateFormat;
+		String localizedFormat = Play.configuration.getProperty("time.format." + Lang.get());
+		if (!StringUtils.isEmpty(localizedFormat)) {
+			return localizedFormat;
 		}
-		final String globalDateFormat = Play.configuration.getProperty("time.format");
-		if (!StringUtils.isEmpty(globalDateFormat)) {
-			return globalDateFormat;
+		localizedFormat = Play.configuration.getProperty("time.format." + Lang.get().substring(0, 2));
+		if (!StringUtils.isEmpty(localizedFormat)) {
+			return localizedFormat;
+		}
+		final String globalFormat = Play.configuration.getProperty("time.format");
+		if (!StringUtils.isEmpty(globalFormat)) {
+			return globalFormat;
 		}
 		// Default value. It's completely arbitrary.
 		return "h:mm a";
