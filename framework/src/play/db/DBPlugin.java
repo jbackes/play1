@@ -251,7 +251,7 @@ public class DBPlugin extends PlayPlugin {
             
             if ("mem".equals(dbConfig.getProperty("db")) && dbConfig.getProperty("db.url") == null) {
                 dbConfig.put("db.driver", "org.h2.Driver");
-                dbConfig.put("db.url", "jdbc:h2:mem:play;MODE=MYSQL");
+                dbConfig.put("db.url", "jdbc:h2:mem:play;MODE=MYSQL;DB_CLOSE_DELAY=-1");
                 dbConfig.put("db.user", "sa");
                 dbConfig.put("db.pass", "");
             }
