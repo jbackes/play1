@@ -206,7 +206,7 @@ public abstract class Binder {
 
             return null; // give up
         } catch (Exception e) {
-            // PELOBA Validation.addError(paramNode.getOriginalKey(), "validation.invalid");
+            Validation.addError(paramNode.getOriginalKey(), "validation.invalid");
         }
         return MISSING;
     }
