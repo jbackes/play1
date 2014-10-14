@@ -1,5 +1,6 @@
 package play.mvc;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -392,9 +394,11 @@ public class Mailer implements LocalVariablesSupport {
 	        String localizedTemplateName = templateName;
 
 	        // overrides Template name
+	        int customArgumentIndex = 0;
             if (args.length > 0 && args[0] instanceof String && LocalVariablesNamesTracer.getAllLocalVariableNames(args[0]).isEmpty()) {
                 localizedTemplateName = args[0].toString();
 	            templateName = localizedTemplateName;
+	            customArgumentIndex++;
             } else {
 	            if(locale == null || locale.length() == 0)
 		            locale = "en";
@@ -403,6 +407,37 @@ public class Mailer implements LocalVariablesSupport {
 
 	            localizedTemplateName = templateName + "." + locale;
             }
+
+	        // overrides Locale settings
+	        // 1) first of all, check with the provided locale as is
+	        // 2) check the base language of the provieded locale
+	        // 3) do not use any locale (this causes the default template loading further down to try default_locale or EN)
+	        if (args.length > customArgumentIndex && args[customArgumentIndex] instanceof Locale && LocalVariablesNamesTracer.getAllLocalVariableNames(args[customArgumentIndex]).isEmpty()) {
+		        Locale _locale = (Locale)args[customArgumentIndex];
+		        localizedTemplateName = templateName + "." + _locale.toString();
+
+		        try {
+			        TemplateLoader.load(localizedTemplateName + ".html");
+		        }
+		        catch(TemplateNotFoundException _) {
+			        try {
+				        TemplateLoader.load(localizedTemplateName + ".txt");
+			        }
+			        catch(TemplateNotFoundException _1) {
+				        localizedTemplateName = templateName + "." + _locale.getLanguage();
+				        try {
+					        TemplateLoader.load(localizedTemplateName + ".html");
+				        }
+				        catch(TemplateNotFoundException _2) {
+					        try {
+						        TemplateLoader.load(localizedTemplateName + ".txt");
+					        } catch (TemplateNotFoundException _3) {
+						    	localizedTemplateName = templateName;
+					        }
+				        }
+			        }
+		        }
+	        }
 
             final Map<String, Object> templateHtmlBinding = new HashMap<String, Object>();
             final Map<String, Object> templateTextBinding = new HashMap<String, Object>();
