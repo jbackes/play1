@@ -100,11 +100,6 @@ public class JPAPlugin extends PlayPlugin {
     public void enhance(ApplicationClass applicationClass) throws Exception {
         new JPAEnhancer().enhanceThisClass(applicationClass);
     }
-
-
-    public void onConfigurationRead() {
-        Properties configuration = Play.configuration;
-    }
      
     public EntityManager em(String key) {
         EntityManagerFactory emf = JPA.emfs.get(key);
@@ -355,7 +350,7 @@ public class JPAPlugin extends PlayPlugin {
                 }
                 // Commit the transaction
                 if (manager.getTransaction().isActive()) {
-                    if (JPA.get().get("default").readonly || rollback || manager.getTransaction().getRollbackOnly()) {
+                    if (JPA.get(JPA.DEFAULT).readonly || rollback || manager.getTransaction().getRollbackOnly()) {
                         manager.getTransaction().rollback();
                     } else {
                         try {
@@ -477,7 +472,8 @@ public class JPAPlugin extends PlayPlugin {
                 tclazz = tclazz.getSuperclass();
             }
             for (Field f : fields) {
-                if (Modifier.isTransient(f.getModifiers())) {
+                int mod = f.getModifiers();
+                if (Modifier.isTransient(mod) || Modifier.isStatic(mod)) {
                     continue;
                 }
                 if (f.isAnnotationPresent(Transient.class)) {
@@ -549,7 +545,8 @@ public class JPAPlugin extends PlayPlugin {
                 properties = new HashMap<String,Model.ModelProperty>();
                 Set<Field> fields = getModelFields(clazz);
                 for (Field f : fields) {
-                    if (Modifier.isTransient(f.getModifiers())) {
+                    int mod = f.getModifiers();
+                    if (Modifier.isTransient(mod) || Modifier.isStatic(mod)) {
                         continue;
                     }
                     if (f.isAnnotationPresent(Transient.class)) {

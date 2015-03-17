@@ -201,13 +201,6 @@ class PlayApplication(object):
             cp_args = ';'.join(classpath)
         return cp_args
 
-
-    def java_path(self):
-        if not os.environ.has_key('JAVA_HOME'):
-            return "java"
-        else:
-            return os.path.normpath("%s/bin/java" % os.environ['JAVA_HOME'])
-
     def pid_path(self):
         if self.play_env.has_key('pid_file'):
             return os.path.join(self.path, self.play_env['pid_file'])
@@ -285,10 +278,11 @@ class PlayApplication(object):
             java_args.append('-server')
 
         javaVersion = getJavaVersion()
-        if javaVersion == "1.7":
+        print "~ using java version \"%s\"" % javaVersion
+        if javaVersion.startswith("1.7"):
             # JDK 7 compat
             java_args.append('-XX:-UseSplitVerifier')
-        elif javaVersion == "1.8":
+        elif javaVersion.startswith("1.8"):
             java_args.append('-noverify')
 
         java_policy = self.readConf('java.policy')
@@ -312,7 +306,7 @@ class PlayApplication(object):
             java_args.append('-Xrunjdwp:transport=dt_socket,address=%s,server=y,suspend=n' % self.jpda_port)
             java_args.append('-Dplay.debug=yes')
         
-        java_cmd = [self.java_path(), '-javaagent:%s' % self.agent_path()] + java_args + ['-classpath', cp_args, '-Dapplication.path=%s' % self.path, '-Dplay.id=%s' % self.play_env["id"], className] + args
+        java_cmd = [java_path(), '-javaagent:%s' % self.agent_path()] + java_args + ['-classpath', cp_args, '-Dapplication.path=%s' % self.path, '-Dplay.id=%s' % self.play_env["id"], className] + args
         return java_cmd
 
     # ~~~~~~~~~~~~~~~~~~~~~~ MISC

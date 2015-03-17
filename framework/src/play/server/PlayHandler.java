@@ -9,14 +9,15 @@ import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.*;
 import org.jboss.netty.handler.codec.http.websocketx.*;
-import org.jboss.netty.handler.stream.ChunkedFile;
 import org.jboss.netty.handler.stream.ChunkedInput;
 import org.jboss.netty.handler.stream.ChunkedStream;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+
 import play.Invoker;
 import play.Invoker.InvocationContext;
 import play.Logger;
 import play.Play;
+import play.data.binding.CachedBoundActionMethodArgs;
 import play.data.validation.Validation;
 import play.exceptions.PlayException;
 import play.exceptions.UnexpectedException;
@@ -177,6 +178,14 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
 
             Request.current.set(request);
             Response.current.set(response);
+            
+            Scope.Params.current.set(request.params);
+            Scope.RenderArgs.current.set(new Scope.RenderArgs());
+            Scope.RouteArgs.current.set(new Scope.RouteArgs());
+            Scope.Session.current.set(Scope.Session.restore());
+            Scope.Flash.current.set(Scope.Flash.restore());
+            CachedBoundActionMethodArgs.init();
+            
             try {
                 if (Play.mode == Play.Mode.DEV) {
                     Router.detectChanges(Play.ctxPath);
@@ -374,10 +383,15 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
             setContentLength(nettyResponse, response.out.size());
         }
 
-        ChannelFuture f = ctx.getChannel().write(nettyResponse);
+        ChannelFuture f = null;
+        if (ctx.getChannel().isOpen()) {
+            f = ctx.getChannel().write(nettyResponse);
+        } else {
+            Logger.debug("Try to write on a closed channel[keepAlive:%s]: Remote host may have closed the connection", String.valueOf(keepAlive));
+        }
 
         // Decide whether to close the connection or not.
-        if (!keepAlive) {
+        if (f != null && !keepAlive) {
             // Close the connection when the whole content is written out.
             f.addListener(ChannelFutureListener.CLOSE);
         }
@@ -436,47 +450,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
                         writeFuture.addListener(ChannelFutureListener.CLOSE);
                     }
                 } else {
-                    if (response.contentType != null) {
-                        nettyResponse.setHeader(CONTENT_TYPE, response.contentType);
-                    } else {
-                        nettyResponse.setHeader(CONTENT_TYPE, MimeTypes.getContentType(file.getName(), "text/plain"));
-                    }
-                    final RandomAccessFile raf = new RandomAccessFile(file, "r");
-                    try {
-                        long fileLength = raf.length();
-
-                        if (!nettyResponse.getStatus().equals(HttpResponseStatus.NOT_MODIFIED)) {
-                            if (Logger.isTraceEnabled()) {
-                                Logger.trace("file length is [" + fileLength + "]");
-                            }
-                            setContentLength(nettyResponse, fileLength);
-                        }
-
-                        Channel ch = ctx.getChannel();
-
-                        // Write the initial line and the header.
-                        ChannelFuture writeFuture = ch.write(nettyResponse);
-
-                        // Write the content.
-                        // If it is not a HEAD
-                        if (!nettyRequest.getMethod().equals(HttpMethod.HEAD)) {
-                            writeFuture = ch.write(new ChunkedFile(raf, 0, fileLength, 8192));
-                        } else {
-                            raf.close();
-                        }
-                        if (!keepAlive) {
-                            // Close the connection when the whole content is written out.
-                            writeFuture.addListener(ChannelFutureListener.CLOSE);
-                        }
-                    } catch (Throwable exx) {
-                        try {
-                            raf.close();
-                        } catch (Throwable ex) { /* Left empty */ }
-                        try {
-                            ctx.getChannel().close();
-                        } catch (Throwable ex) { /* Left empty */ }
-                    }
-
+                   FileService.serve(file, nettyRequest, nettyResponse, ctx, request, response, ctx.getChannel());  
                 }
             } catch (Exception e) {
                 throw e;
@@ -890,7 +864,6 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
                     nettyResponse = addEtag(nettyRequest, nettyResponse, localFile);
 
                     if (nettyResponse.getStatus().equals(HttpResponseStatus.NOT_MODIFIED)) {
-
                         Channel ch = e.getChannel();
 
                         // Write the initial line and the header.
@@ -900,50 +873,7 @@ public class PlayHandler extends SimpleChannelUpstreamHandler {
                             writeFuture.addListener(ChannelFutureListener.CLOSE);
                         }
                     } else {
-
-                        final RandomAccessFile raf = new RandomAccessFile(localFile, "r");
-                        try {
-                            long fileLength = raf.length();
-
-                            if (Logger.isTraceEnabled()) {
-                                Logger.trace("keep alive " + keepAlive);
-                                Logger.trace("content type " + (MimeTypes.getContentType(localFile.getName(), "text/plain")));
-                            }
-
-                            if (!nettyResponse.getStatus().equals(HttpResponseStatus.NOT_MODIFIED)) {
-                                // Add 'Content-Length' header only for a keep-alive connection.
-                                if (Logger.isTraceEnabled()) {
-                                    Logger.trace("file length " + fileLength);
-                                }
-                                setContentLength(nettyResponse, fileLength);
-                            }
-
-                            nettyResponse.setHeader(CONTENT_TYPE, (MimeTypes.getContentType(localFile.getName(), "text/plain")));
-
-                            Channel ch = e.getChannel();
-
-                            // Write the initial line and the header.
-                            ChannelFuture writeFuture = ch.write(nettyResponse);
-
-                            // Write the content.
-                            if (!nettyRequest.getMethod().equals(HttpMethod.HEAD)) {
-                                writeFuture = ch.write(new ChunkedFile(raf, 0, fileLength, 8192));
-                            } else {
-                                raf.close();
-                            }
-
-                            if (!keepAlive) {
-                                // Close the connection when the whole content is written out.
-                                writeFuture.addListener(ChannelFutureListener.CLOSE);
-                            }
-                        } catch (Throwable exx) {
-                            try {
-                                raf.close();
-                            } catch (Throwable ex) { /* Left empty */ }
-                            try {
-                                ctx.getChannel().close();
-                            } catch (Throwable ex) { /* Left empty */ }
-                        }
+                        FileService.serve(localFile, nettyRequest, nettyResponse, ctx, request, response, e.getChannel());
                     }
                 }
 

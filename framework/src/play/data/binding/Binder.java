@@ -413,23 +413,31 @@ public abstract class Binder {
                     if (annotation.annotationType().equals(As.class)) {
                         As as = ((As) annotation);
                         final String separator = as.value()[0];
-			if (separator != null && !separator.isEmpty()){
+                        if (separator != null && !separator.isEmpty()){
                         	values = values[0].split(separator);
-			}
+                        }
                     }
                 }
             }
 
             Collection l = (Collection) clazz.newInstance();
+            boolean hasMissing = false;
             for (int i = 0; i < values.length; i++) {
                 try {
-                    Object value = directBind(paramNode.getOriginalKey(), bindingAnnotations.annotations, values[i], componentClass, componentType);
-                    l.add(value);
+                    Object value = internalDirectBind(paramNode.getOriginalKey(), bindingAnnotations.annotations, values[i], componentClass, componentType);
+                    if ( value == DIRECTBINDING_NO_RESULT) {
+                        hasMissing  = true;
+                    } else { 
+                        l.add(value);
+                    }
                 } catch (Exception e) {
                     // Just ignore the exception and continue on the next item
                 }
             }
-            return l;
+            if(hasMissing && l.size() == 0){
+                return MISSING;
+            }
+            return l;  
         }
 
         Collection r = (Collection) clazz.newInstance();

@@ -15,6 +15,8 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.runtime.NullObject;
+
 import play.cache.Cache;
 import play.data.validation.Error;
 import play.data.validation.Validation;
@@ -143,7 +145,7 @@ public class FastTags {
             actionDef.method = "POST";
         }
         String encoding = Http.Response.current().encoding;
-        out.print("<form action=\"" + actionDef.url + "\" method=\"" + actionDef.method.toLowerCase() + "\" accept-charset=\""+encoding+"\" enctype=\"" + enctype + "\" " + serialize(args, "action", "method", "accept-charset", "enctype") + (name != null?"name=\"" + name + "\"":"") +  ">");
+        out.print("<form action=\"" + actionDef.url + "\" method=\"" + actionDef.method.toLowerCase() + "\" accept-charset=\""+encoding+"\" enctype=\"" + enctype + "\" " + serialize(args, "name", "action", "method", "accept-charset", "enctype") + (name != null?"name=\"" + name + "\"":"") +  ">");
         if (!("GET".equals(actionDef.method))) {
             _authenticityToken(args, body, out, template, fromLine);
         }
@@ -275,7 +277,9 @@ public class FastTags {
                 return ((Number) test).intValue() != 0;
             } else if (test instanceof Collection) {
                 return !((Collection) test).isEmpty();
-            } else {
+            } else if (test instanceof NullObject) {
+              return false;
+           } else {
                 return true;
             }
         }

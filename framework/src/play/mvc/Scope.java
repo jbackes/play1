@@ -3,6 +3,7 @@ package play.mvc;
 import java.lang.annotation.Annotation;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -40,7 +41,7 @@ public class Scope {
         Map<String, String> data = new HashMap<String, String>();
         Map<String, String> out = new HashMap<String, String>();
 
-        static Flash restore() {
+        public static Flash restore() {
             try {
                 Flash flash = new Flash();
                 Http.Cookie cookie = Http.Request.current().cookies.get(COOKIE_PREFIX + "_FLASH");
@@ -60,13 +61,13 @@ public class Scope {
             }
             if (out.isEmpty()) {
                 if(Http.Request.current().cookies.containsKey(COOKIE_PREFIX + "_FLASH") || !SESSION_SEND_ONLY_IF_CHANGED) {
-                    Http.Response.current().setCookie(COOKIE_PREFIX + "_FLASH", "", null, "/", 0, COOKIE_SECURE);
+                    Http.Response.current().setCookie(COOKIE_PREFIX + "_FLASH", "", null, "/", 0, COOKIE_SECURE, SESSION_HTTPONLY);
                 }
                 return;
             }
             try {
                 String flashData = CookieDataCodec.encode(out);
-                Http.Response.current().setCookie(COOKIE_PREFIX + "_FLASH", flashData, null, "/", null, COOKIE_SECURE);
+                Http.Response.current().setCookie(COOKIE_PREFIX + "_FLASH", flashData, null, "/", null, COOKIE_SECURE, SESSION_HTTPONLY);
             } catch (Exception e) {
                 throw new UnexpectedException("Flash serializationProblem", e);
             }
@@ -156,7 +157,7 @@ public class Scope {
         static final String ID_KEY = "___ID";
         static final String TS_KEY = "___TS";
 
-        static Session restore() {
+        public static Session restore() {
             try {
                 Session session = new Session();
                 Http.Cookie cookie = Http.Request.current().cookies.get(COOKIE_PREFIX + "_SESSION");
@@ -210,7 +211,7 @@ public class Scope {
 
         public String getId() {
             if (!data.containsKey(ID_KEY)) {
-                data.put(ID_KEY, Codec.UUID());
+                this.put(ID_KEY, Codec.UUID());
             }
             return data.get(ID_KEY);
 
@@ -222,7 +223,7 @@ public class Scope {
 
         public String getAuthenticityToken() {
             if (!data.containsKey(AT_KEY)) {
-                data.put(AT_KEY, Crypto.sign(UUID.randomUUID().toString()));
+                this.put(AT_KEY, Crypto.sign(UUID.randomUUID().toString()));
             }
             return data.get(AT_KEY);
         }
@@ -401,6 +402,19 @@ public class Scope {
             // make sure rootsParamsNode is regenerated if needed
             rootParamsNodeIsGenerated = false;
         }
+        
+        public void removeStartWith(String prefix) {
+            checkAndParse();
+            Iterator<Map.Entry<String, String[]>> iterator = data.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, String[]> entry = iterator.next();
+                if (entry.getKey().startsWith(prefix)) {
+                    iterator.remove();
+                }
+            }
+            // make sure rootsParamsNode is regenerated if needed
+            rootParamsNodeIsGenerated = false;
+        }
 
         public String get(String key) {
             if (!_contains(key)) {
@@ -452,7 +466,7 @@ public class Scope {
 
         public Map<String, String[]> sub(String prefix) {
             checkAndParse();
-            Map<String, String[]> result = new HashMap<String, String[]>();
+            Map<String, String[]> result = new LinkedHashMap<String, String[]>();
             for (String key : data.keySet()) {
                 if (key.startsWith(prefix + ".")) {
                     result.put(key.substring(prefix.length() + 1), data.get(key));
