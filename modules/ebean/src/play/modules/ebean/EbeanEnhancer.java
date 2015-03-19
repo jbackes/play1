@@ -1,9 +1,8 @@
 package play.modules.ebean;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.instrument.ClassFileTransformer;
-
+import com.avaje.ebean.enhance.agent.ClassBytesReader;
+import com.avaje.ebean.enhance.agent.InputStreamTransform;
+import com.avaje.ebean.enhance.agent.Transformer;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtMethod;
@@ -14,12 +13,13 @@ import play.classloading.ApplicationClasses.ApplicationClass;
 import play.classloading.enhancers.Enhancer;
 import play.exceptions.UnexpectedException;
 
-import com.avaje.ebean.enhance.agent.ClassBytesReader;
-import com.avaje.ebean.enhance.agent.InputStreamTransform;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.instrument.ClassFileTransformer;
 
 public class EbeanEnhancer extends Enhancer
 {
-  static ClassFileTransformer transformer = new PlayAwareTransformer(new PlayClassBytesReader(), "transientInternalFields=true;debug=0");
+  static ClassFileTransformer transformer = new Transformer(new PlayClassBytesReader(), "transientInternalFields=true;debug=0");
 
   
   public void enhanceThisClass(ApplicationClass applicationClass) throws Exception

@@ -1,6 +1,6 @@
 <project name="Play Ebean Plugin" default="build" basedir=".">
 
-    <property name="ebean-agent.version" value="3.2.2" />
+    <property name="ebean-agent.version" value="4.5.2" />
 
     <path id="project.classpath">
         <pathelement path="${play.path}/framework/classes"/>

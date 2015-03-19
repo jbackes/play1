@@ -48,7 +48,7 @@ public class EbeanPlugin extends PlayPlugin
     try {
       result = EbeanServerFactory.create(cfg);
     } catch (Throwable t) {
-      Logger.error("Failed to create ebean server (%s)", t.getMessage());
+      Logger.error(t, "Failed to create ebean server");
     }
     return result;
   }
