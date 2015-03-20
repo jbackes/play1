@@ -21,7 +21,7 @@ import java.util.*;
 
 @SuppressWarnings("unchecked")
 @MappedSuperclass
-public class EbeanSupport implements play.db.Model {
+public abstract class EbeanSupport implements play.db.Model {
 	private transient List<EbeanSupport> detachedManys = null;
 	private transient boolean isSaving = false;
 
@@ -229,10 +229,6 @@ public class EbeanSupport implements play.db.Model {
 	public void _delete() {
 		ebean().delete(this);
 		PlayPlugin.postEvent("JPASupport.objectDeleted", this);
-	}
-
-	public Object _key() {
-		return Model.Manager.factoryFor(this.getClass()).keyValue(this);
 	}
 
 	protected void detachMany(final EbeanSupport es) {
