@@ -1,63 +1,57 @@
 package play.modules.ebean;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.avaje.ebean.EbeanServer;
+import com.avaje.ebean.EbeanServerFactory;
+import com.avaje.ebean.config.ServerConfig;
+import play.Logger;
+import play.Play;
+import play.db.DB;
 
 import javax.sql.DataSource;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.avaje.ebean.EbeanServer;
+public class EbeanContext {
+	private static Map<String, EbeanServer> servers = new ConcurrentHashMap<>();
 
-public class EbeanContext
-{
-  public static ThreadLocal<EbeanContext> local      = new ThreadLocal<EbeanContext>();
+	private EbeanContext() {
+	}
 
-  private EbeanServer                     server;
-  private Map<String, Object>             properties = new HashMap<String, Object>();
+	public static EbeanServer server() {
+		return server("default");
+	}
 
-  private EbeanContext(EbeanServer server, Object... props)
-  {
-    this.server = server;
-    for (int i = 0; i < props.length - 1; i += 2)
-      properties.put(props[i].toString(), props[i + 1]);
-  }
+	public static EbeanServer server(String name) {
+		return servers.computeIfAbsent(name, (key) -> createServer(name) );
+	}
 
-  public static EbeanContext set(EbeanServer server, Object... properties)
-  {
-    EbeanContext ctx = local.get();
-    if (ctx != null && ctx.server != null && ctx.server.currentTransaction() != null) {
-      ctx.server.endTransaction();
-    }
-    ctx = new EbeanContext(server, properties);
-    local.set(ctx);
-    return ctx;
-  }
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static EbeanServer createServer(String name) {
+		final DataSource dataSource = DB.getDataSource(name);
 
-  public static EbeanContext set(String name, DataSource ds, Object... properties)
-  {
-    return set(EbeanPlugin.checkServer(name, ds), properties);
-  }
+		if(dataSource == null) {
+			Logger.warn("Failed to create ebean server since data source %s does not exist", name);
+			return null;
+		}
 
-  public static EbeanContext get()
-  {
-    EbeanContext result = local.get();
-    if (result == null) {
-      throw new IllegalStateException("The Ebean context is not initialized.");
-    }
-    return result;
-  }
+		ServerConfig cfg = new ServerConfig();
+		cfg.loadFromProperties();
+		cfg.setName(name);
+		cfg.setClasses((List) Play.classloader.getAllClasses());
+		cfg.setDataSource(dataSource);
+		cfg.setRegister("default".equals(name));
+		cfg.setDefaultServer("default".equals(name));
+		cfg.add(new EbeanModelAdapter());
+		try {
+			return EbeanServerFactory.create(cfg);
+		} catch (Throwable t) {
+			Logger.error(t, "Failed to create ebean server %s", name);
+			return null;
+		}
+	}
 
-  public static EbeanServer server()
-  {
-    return get().server;
-  }
-
-  public static Object getProperty(String propertyName)
-  {
-    return get().properties.get(propertyName);
-  }
-
-  public static void setProperty(String propertyName, Object object)
-  {
-    get().properties.put(propertyName, object);
-  }
+	public static void clear() {
+		servers.clear();
+	}
 }

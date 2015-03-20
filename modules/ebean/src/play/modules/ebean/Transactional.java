@@ -10,4 +10,5 @@ import java.lang.annotation.*;
 public @interface Transactional {
 	public TxIsolation mode() default TxIsolation.DEFAULT;
 	public boolean explicitCommit() default false;
+	public boolean readOnly() default false;
 }
