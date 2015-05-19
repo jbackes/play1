@@ -1,11 +1,11 @@
 package play.i18n;
 
+import play.Play;
+import play.data.binding.Binder;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import play.Play;
-import play.data.binding.Binder;
 
 /**
  * I18n Helper
@@ -111,7 +111,6 @@ public class Messages {
 
     public static String formatString(Locale locale, String value, Object... args) {
         String message = String.format(locale, value, coolStuff(value, args));
-
         Matcher matcher = recursive.matcher(message);
         StringBuffer sb = new StringBuffer();
         while(matcher.find()) {
@@ -121,7 +120,7 @@ public class Messages {
         return sb.toString();
     }
 
-    static Pattern formatterPattern = Pattern.compile("%((\\d+)\\$)?([-#+ 0,(]+)?(\\d+)?([.]\\d+)?([bBhHsScCdoxXeEfgGaAtT])");
+    static Pattern formatterPattern = Pattern.compile("%((\\d+)\\$)?([-#+ 0,(]+)?(\\d+)?([.]\\d+)?([bBhHsScCdoxXeEfgGaAtT%])");
 
     @SuppressWarnings("unchecked")
     static Object[] coolStuff(String pattern, Object[] args) {
