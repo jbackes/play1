@@ -11,6 +11,14 @@ public class BaseTest extends org.junit.Assert {
     @Rule
     public PlayJUnitRunner.StartPlay startPlayBeforeTests = PlayJUnitRunner.StartPlay.rule();
 
+    public static void assertTrue(boolean condition) {
+        assertEquals(true, condition);
+    }
+
+    public static void assertFalse(boolean condition) {
+        assertEquals(false, condition);
+    }
+
     /**
      * Pause the current thread
      */
@@ -21,7 +29,7 @@ public class BaseTest extends org.junit.Assert {
             throw new UnexpectedException(ex);
         }
     }
-    
+
     /**
      * Flush and clear the JPA session
      */
@@ -30,5 +38,5 @@ public class BaseTest extends org.junit.Assert {
         JPA.em().flush();
         JPA.em().clear();
     }
-    
+
 }
