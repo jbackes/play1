@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.lang.instrument.ClassFileTransformer;
 
 public class EbeanEnhancer extends Enhancer {
-	static ClassFileTransformer transformer = new Transformer(new PlayClassBytesReader(), "transientInternalFields=true;debug=0");
+	static ClassFileTransformer transformer = new Transformer(new PlayClassBytesReader(), "transientInternalFields=true;debug=0", null, null);
 
 
 	public void enhanceThisClass(ApplicationClass applicationClass) throws Exception {
