@@ -46,6 +46,6 @@
             <classpath refid="project.classpath" />
         </javac>
 
-        <ebeanEnhance classpath="${ebean.cp}" classSource="${basedir}/tmp/classes" packages="play/modules/ebean" transformArgs="transientInternalFields=true;debug=1"/>
+        <ebeanEnhance classpath="${ebean.cp}" classSource="${basedir}/tmp/classes" packages="play/modules/ebean" transformArgs="packages=play/modules/ebean;transientInternalFields=true;debug=99"/>
     </target>
 </project>
