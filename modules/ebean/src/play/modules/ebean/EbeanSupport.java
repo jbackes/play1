@@ -182,7 +182,7 @@ public abstract class EbeanSupport implements play.db.Model {
 	protected static <T extends EbeanSupport> Query<T> createQuery(Class<T> beanType, String where, Object[] params) {
 		Query<T> q = ebean().createQuery(beanType);
 		if (where != null) {
-			q.where(where);
+			q.where().raw(where);
 			for (int i = 0; i < params.length; i++)
 				q.setParameter(i + 1, params[i]);
 		}
