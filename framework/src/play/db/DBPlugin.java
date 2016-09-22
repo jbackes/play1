@@ -125,40 +125,40 @@ public class DBPlugin extends PlayPlugin {
                         hc.setUsername(dbConfig.getProperty("db.user"));
                         hc.setPassword(dbConfig.getProperty("db.pass"));
 
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.autoCommit")))
-		                    hc.setAutoCommit(Boolean.parseBoolean(dbConfig.getProperty("db.autoCommit")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.readOnly")))
-		                    hc.setReadOnly(Boolean.parseBoolean(dbConfig.getProperty("db.readOnly")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.transactionIsolation")))
-		                    hc.setTransactionIsolation(dbConfig.getProperty("db.transactionIsolation"));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.catalog")))
-		                    hc.setCatalog(dbConfig.getProperty("db.catalog"));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionTimeout")))
-		                    hc.setConnectionTimeout(Long.parseLong(dbConfig.getProperty("db.connectionTimeout")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.idleTimeout")))
-		                    hc.setIdleTimeout(Long.parseLong(dbConfig.getProperty("db.idleTimeout")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.maxLifetime")))
-		                    hc.setMaxLifetime(Long.parseLong(dbConfig.getProperty("db.maxLifetime")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.leakDetectionThreshold")))
-		                    hc.setLeakDetectionThreshold(Long.parseLong(dbConfig.getProperty("db.leakDetectionThreshold")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.initializationFailFast")))
-		                    hc.setInitializationFailFast(Boolean.parseBoolean(dbConfig.getProperty("db.initializationFailFast")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.jdbc4ConnectionTest")))
-		                    hc.setJdbc4ConnectionTest(Boolean.parseBoolean(dbConfig.getProperty("db.jdbc4ConnectionTest")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionTestQuery")))
-		                    hc.setConnectionTestQuery(dbConfig.getProperty("db.connectionTestQuery"));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.connectionInitSql")))
-		                    hc.setConnectionInitSql(dbConfig.getProperty("db.connectionInitSql"));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.minimumIdle")))
-		                    hc.setMinimumIdle(Integer.parseInt(dbConfig.getProperty("db.minimumIdle")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.maximumPoolSize")))
-		                    hc.setMaximumPoolSize(Integer.parseInt(dbConfig.getProperty("db.maximumPoolSize")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.poolName")))
-		                    hc.setPoolName(dbConfig.getProperty("db.poolName"));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.registerMbeans")))
-		                    hc.setRegisterMbeans(Boolean.parseBoolean(dbConfig.getProperty("db.registerMbeans")));
-	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.isolateInternalQueries")))
-		                    hc.setIsolateInternalQueries(Boolean.parseBoolean(dbConfig.getProperty("db.isolateInternalQueries")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.autoCommit")))
+		                    hc.setAutoCommit(Boolean.parseBoolean(dbConfig.getProperty("db.pool.autoCommit")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.readOnly")))
+		                    hc.setReadOnly(Boolean.parseBoolean(dbConfig.getProperty("db.pool.readOnly")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.transactionIsolation")))
+		                    hc.setTransactionIsolation(dbConfig.getProperty("db.pool.transactionIsolation"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.catalog")))
+		                    hc.setCatalog(dbConfig.getProperty("db.pool.catalog"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.connectionTimeout")))
+		                    hc.setConnectionTimeout(Long.parseLong(dbConfig.getProperty("db.pool.connectionTimeout")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.idleTimeout")))
+		                    hc.setIdleTimeout(Long.parseLong(dbConfig.getProperty("db.pool.idleTimeout")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.maxLifetime")))
+		                    hc.setMaxLifetime(Long.parseLong(dbConfig.getProperty("db.pool.maxLifetime")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.leakDetectionThreshold")))
+		                    hc.setLeakDetectionThreshold(Long.parseLong(dbConfig.getProperty("db.pool.leakDetectionThreshold")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.initializationFailFast")))
+		                    hc.setInitializationFailFast(Boolean.parseBoolean(dbConfig.getProperty("db.pool.initializationFailFast")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.jdbc4ConnectionTest")))
+		                    hc.setJdbc4ConnectionTest(Boolean.parseBoolean(dbConfig.getProperty("db.pool.jdbc4ConnectionTest")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.connectionTestQuery")))
+		                    hc.setConnectionTestQuery(dbConfig.getProperty("db.pool.connectionTestQuery"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.connectionInitSql")))
+		                    hc.setConnectionInitSql(dbConfig.getProperty("db.pool.connectionInitSql"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.minimumIdle")))
+		                    hc.setMinimumIdle(Integer.parseInt(dbConfig.getProperty("db.pool.minimumIdle")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.maximumPoolSize")))
+		                    hc.setMaximumPoolSize(Integer.parseInt(dbConfig.getProperty("db.pool.maximumPoolSize")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.poolName")))
+		                    hc.setPoolName(dbConfig.getProperty("db.pool.poolName"));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.registerMbeans")))
+		                    hc.setRegisterMbeans(Boolean.parseBoolean(dbConfig.getProperty("db.pool.registerMbeans")));
+	                    if(StringUtils.isNotBlank(dbConfig.getProperty("db.pool.isolateInternalQueries")))
+		                    hc.setIsolateInternalQueries(Boolean.parseBoolean(dbConfig.getProperty("db.pool.isolateInternalQueries")));
 
 	                    HikariDataSource ds = new HikariDataSource(hc);
 
