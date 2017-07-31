@@ -3,14 +3,16 @@ package play.modules.ebean;
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.EbeanServerFactory;
 import com.avaje.ebean.config.ServerConfig;
-import play.Logger;
-import play.Play;
-import play.db.DB;
-
-import javax.sql.DataSource;
+import com.avaje.ebeaninternal.server.core.bootup.BootupClassPathSearch;
+import com.avaje.ebeaninternal.server.core.bootup.BootupClasses;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.sql.DataSource;
+import play.Logger;
+import play.Play;
+import play.db.DB;
 
 public class EbeanContext {
 	private static Map<String, EbeanServer> servers = new ConcurrentHashMap<>();
@@ -38,11 +40,17 @@ public class EbeanContext {
 		ServerConfig cfg = new ServerConfig();
 		cfg.loadFromProperties();
 		cfg.setName(name);
-		cfg.setClasses((List) Play.classloader.getAllClasses());
+		cfg.setClasses((List) new ArrayList<>(Play.classloader.getAllClasses()));
 		cfg.setDataSource(dataSource);
 		cfg.setRegister("default".equals(name));
 		cfg.setDefaultServer("default".equals(name));
 		cfg.add(new EbeanModelAdapter());
+
+		if(cfg.getPackages() != null && cfg.getPackages().size() > 0) {
+			final BootupClasses buc = BootupClassPathSearch.search(cfg);
+			cfg.getClasses().addAll(buc.getEntities());
+		}
+
 		try {
 			return EbeanServerFactory.create(cfg);
 		} catch (Throwable t) {
