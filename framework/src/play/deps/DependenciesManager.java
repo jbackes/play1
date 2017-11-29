@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -21,20 +20,25 @@ import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.util.DefaultMessageLogger;
 import org.apache.ivy.util.Message;
 import org.apache.ivy.util.filter.FilterHelper;
-
 import play.libs.Files;
 import play.libs.IO;
 
 public class DependenciesManager {
-   
+
+    public static String DEPENDENCIES_YML = "conf/dependencies.yml";
+
     public static void main(String[] args) throws Exception {
 
+        if(System.getProperty("depsFile") != null) {
+            DEPENDENCIES_YML = System.getProperty("depsFile");
+        }
         // Paths
         File application = new File(System.getProperty("application.path"));
         File framework = new File(System.getProperty("framework.path"));
         File userHome  = new File(System.getProperty("user.home"));
 
         DependenciesManager deps = new DependenciesManager(application, framework, userHome);
+
 
         ResolveReport report = deps.resolve();
             if(report != null) {
@@ -58,15 +62,15 @@ public class DependenciesManager {
     File framework;
     File userHome;
     HumanReadyLogger logger;
-    
+
     final FileFilter dirsToTrim = new FileFilter() {
-    
+
         public boolean accept(File file) {
             return file.isDirectory() && isDirToTrim(file.getName());
         }
-        
+
         private boolean isDirToTrim(String fileName) {
-            return "documentation".equals(fileName) || "src".equals(fileName) || 
+            return "documentation".equals(fileName) || "src".equals(fileName) ||
                    "tmp".equals(fileName) || fileName.contains("sample") ||
                    fileName.contains("test");
         }
@@ -160,15 +164,15 @@ public class DependenciesManager {
 
     // Retrieve the list of modules in the order they were defined in the dependencies.yml.
     public Set<String> retrieveModules() throws Exception {
-    	File ivyModule = new File(application, "conf/dependencies.yml");
+    	File ivyModule = new File(application, DEPENDENCIES_YML);
         if(ivyModule == null || !ivyModule.exists()) {
             return new LinkedHashSet<String>();
         }
     	return YamlParser.getOrderedModuleList(ivyModule);
     }
-	
+
     public List<File> retrieve(ResolveReport report) throws Exception {
-	    	
+
         // Track missing artifacts
         List<ArtifactDownloadReport> missing = new ArrayList<ArtifactDownloadReport>();
 
@@ -183,12 +187,12 @@ public class DependenciesManager {
                     } else {
                         if (isPlayModule(artifact) || !isFrameworkLocal(artifact)) {
                             artifacts.add(artifact);
-                            
+
                             // Save the order of module
                             if(isPlayModule(artifact)){
                                 String mName = artifact.getLocalFile().getName();
                                 if (mName.endsWith(".jar") || mName.endsWith(".zip")) {
-                            	mName = mName.substring(0, mName.length() - 4); 
+                            	mName = mName.substring(0, mName.length() - 4);
                                 }
                             }
                         }
@@ -196,14 +200,14 @@ public class DependenciesManager {
                 }
             }
         }
-        
+
         // Create directory if not exist
         File modulesDir = new File(application, "modules");
         if(!modulesDir.exists()){
             modulesDir.mkdir();
         }
-          
-     
+
+
         if (!missing.isEmpty()) {
             System.out.println("~");
             System.out.println("~ WARNING: Some dependencies could not be downloaded (use --verbose for details),");
@@ -281,13 +285,13 @@ public class DependenciesManager {
                     Files.unzip(from, to);
                     System.out.println("~ \tmodules/" + to.getName());
                 }
-                
+
                 if (trim) {
                     for (File dirToTrim : to.listFiles(dirsToTrim)) {
                         Files.deleteDirectory(dirToTrim);
                     }
                 }
-                
+
                 return to;
             }
         } catch (Exception e) {
@@ -321,7 +325,7 @@ public class DependenciesManager {
 
         // Module
         ModuleDescriptorParserRegistry.getInstance().addParser(new YamlParser());
-        File ivyModule = new File(application, "conf/dependencies.yml");
+        File ivyModule = new File(application, DEPENDENCIES_YML);
         if(!ivyModule.exists()) {
             System.out.println("~ !! " + ivyModule.getAbsolutePath() + " does not exist");
 			System.exit(-1);
@@ -331,7 +335,7 @@ public class DependenciesManager {
 
         // Variables
         System.setProperty("play.path", framework.getAbsolutePath());
-        
+
         // Ivy
         Ivy ivy = configure();
 
@@ -351,11 +355,11 @@ public class DependenciesManager {
 
            System.out.println("~");
          }
-        
+
 
         System.out.println("~ Resolving dependencies using " + ivyModule.getAbsolutePath() + ",");
         System.out.println("~");
-        
+
         // Resolve
         ResolveEngine resolveEngine = ivy.getResolveEngine();
         ResolveOptions resolveOptions = new ResolveOptions();
@@ -373,7 +377,7 @@ public class DependenciesManager {
 
         IvySettings ivySettings = new IvySettings();
         new SettingsParser(humanReadyLogger).parse(ivySettings, new File(framework, "framework/dependencies.yml"));
-        new SettingsParser(humanReadyLogger).parse(ivySettings, new File(application, "conf/dependencies.yml"));
+        new SettingsParser(humanReadyLogger).parse(ivySettings, new File(application, DEPENDENCIES_YML));
         ivySettings.setDefaultResolver("mavenCentral");
         ivySettings.setDefaultUseOrigin(true);
         PlayConflictManager conflictManager = new PlayConflictManager();
