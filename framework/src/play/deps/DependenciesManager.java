@@ -29,6 +29,12 @@ public class DependenciesManager {
 
     public static void main(String[] args) throws Exception {
 
+        // ezpz lemmon squeezy shortcut
+        if(System.getProperty("dev") != null) {
+            System.setProperty("depsFile", "conf/dependencies-dev.yml");
+            System.setProperty("sync", "");
+        }
+
         if(System.getProperty("depsFile") != null) {
             DEPENDENCIES_YML = System.getProperty("depsFile");
         }
