@@ -9,9 +9,9 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 import javax.sql.RowSet;
 import javax.sql.rowset.CachedRowSet;
+import javax.sql.rowset.RowSetProvider;
 
 import org.hibernate.impl.SessionImpl;
-import com.sun.rowset.CachedRowSetImpl;
 
 import play.db.jpa.JPA;
 import play.exceptions.DatabaseException;
@@ -109,7 +109,7 @@ public class DB {
             }
             
             // Need to use a CachedRowSet that caches its rows in memory, which makes it possible to operate without always being connected to its data source
-            CachedRowSet rowset = new CachedRowSetImpl();
+            CachedRowSet rowset = RowSetProvider.newFactory().createCachedRowSet();
             rowset.populate(rs);
             return rowset;     
         } catch (SQLException ex) {
