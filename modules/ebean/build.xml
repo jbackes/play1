@@ -1,6 +1,6 @@
 <project name="Play Ebean Plugin" default="build" basedir=".">
 
-    <property name="ebean-agent.version" value="3.2.2" />
+    <property name="ebean-agent.version" value="11.11.1" />
 
     <path id="project.classpath">
         <pathelement path="${play.path}/framework/classes"/>
@@ -18,7 +18,7 @@
 
     <property name="ebean.cp" refid="ebean.classpath"/>
 
-	<taskdef name="ebeanEnhance" classname="com.avaje.ebean.enhance.ant.AntEnhanceTask" classpath="${basedir}/lib/avaje-ebeanorm-agent-${ebean-agent.version}.jar" />
+	<taskdef name="ebeanEnhance" classname="io.ebean.enhance.ant.AntEnhanceTask" classpath="${basedir}/lib/ebean-agent-${ebean-agent.version}.jar" />
 
     <target name="build" depends="clean,compile">
         <copy todir="tmp/classes">
@@ -46,6 +46,6 @@
             <classpath refid="project.classpath" />
         </javac>
 
-        <ebeanEnhance classpath="${ebean.cp}" classSource="${basedir}/tmp/classes" packages="play/modules/ebean" transformArgs="transientInternalFields=true;debug=1"/>
+        <ebeanEnhance classpath="${ebean.cp}" classSource="${basedir}/tmp/classes" packages="de.peloba.ebean.*" transformArgs="transientInternalFields=true;debug=99"/>
     </target>
 </project>

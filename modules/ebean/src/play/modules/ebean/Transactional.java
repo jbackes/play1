@@ -1,6 +1,6 @@
 package play.modules.ebean;
 
-import com.avaje.ebean.TxIsolation;
+import io.ebean.annotation.TxIsolation;
 
 import java.lang.annotation.*;
 

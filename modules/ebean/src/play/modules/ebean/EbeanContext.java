@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import com.avaje.ebean.EbeanServer;
+import io.ebean.EbeanServer;
 
 public class EbeanContext
 {

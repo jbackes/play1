@@ -1,9 +1,7 @@
-package play.modules.ebean;
+package de.peloba.ebean;
 
-import java.util.Set;
-
-import com.avaje.ebean.event.BeanPersistAdapter;
-import com.avaje.ebean.event.BeanPersistRequest;
+import io.ebean.event.BeanPersistAdapter;
+import io.ebean.event.BeanPersistRequest;
 
 public class EbeanModelAdapter extends BeanPersistAdapter
 {
@@ -11,33 +9,27 @@ public class EbeanModelAdapter extends BeanPersistAdapter
   @Override
   public boolean isRegisterFor(Class<?> cls)
   {
-    return EbeanSupport.class.isAssignableFrom(cls);
-  }
-
-  @Override
-  public void postLoad(Object bean, Set<String> includedProperties)
-  {
-    ((EbeanSupport) bean).afterLoad();
+    return de.peloba.ebean.EbeanSupport.class.isAssignableFrom(cls);
   }
 
   @Override
   public boolean preInsert(BeanPersistRequest<?> request)
   {
-    ((EbeanSupport) request.getBean()).beforeSave(true);
+    ((de.peloba.ebean.EbeanSupport) request.getBean()).beforeSave(true);
     return true;
   }
 
   @Override
   public boolean preUpdate(BeanPersistRequest<?> request)
   {
-    ((EbeanSupport) request.getBean()).beforeSave(false);
+    ((de.peloba.ebean.EbeanSupport) request.getBean()).beforeSave(false);
     return true;
   }
 
   @Override
   public void postInsert(BeanPersistRequest<?> request)
   {
-    ((EbeanSupport) request.getBean()).afterSave(true);
+    ((de.peloba.ebean.EbeanSupport) request.getBean()).afterSave(true);
   }
 
   @Override

@@ -1,4 +1,4 @@
-package play.modules.ebean;
+package de.peloba.ebean;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;

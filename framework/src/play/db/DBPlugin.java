@@ -1,7 +1,5 @@
 package play.db;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.ConnectionCustomizer;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -19,6 +17,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.mchange.v2.c3p0.ConnectionCustomizer;
 import jregex.Matcher;
 import org.apache.commons.lang.StringUtils;
 import play.Logger;

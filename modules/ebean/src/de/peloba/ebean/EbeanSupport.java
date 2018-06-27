@@ -1,4 +1,4 @@
-package play.modules.ebean;
+package de.peloba.ebean;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -19,11 +19,12 @@ import play.data.binding.Binder;
 import play.data.validation.Validation;
 import play.db.Model;
 import play.exceptions.UnexpectedException;
+import play.modules.ebean.EbeanContext;
 import play.mvc.Scope.Params;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.Update;
+import io.ebean.EbeanServer;
+import io.ebean.Query;
+import io.ebean.Update;
 
 @SuppressWarnings("unchecked")
 @MappedSuperclass
@@ -207,7 +208,7 @@ public class EbeanSupport implements play.db.Model
   {
     Query<T> q = ebean().createQuery(beanType);
     if (where != null) {
-      q.where(where);
+      q.where().raw(where);
       for (int i = 0; i < params.length; i++)
         q.setParameter(i + 1, params[i]);
     }

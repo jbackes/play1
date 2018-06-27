@@ -23,6 +23,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.sql.DataSource;
 
+import de.peloba.ebean.EbeanModelAdapter;
+import de.peloba.ebean.EbeanSupport;
 import play.Invoker;
 import play.Logger;
 import play.Play;
@@ -37,11 +39,11 @@ import play.exceptions.UnexpectedException;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.EbeanServerFactory;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.Update;
-import com.avaje.ebean.config.ServerConfig;
+import io.ebean.EbeanServer;
+import io.ebean.EbeanServerFactory;
+import io.ebean.Query;
+import io.ebean.Update;
+import io.ebean.config.ServerConfig;
 
 public class EbeanPlugin extends PlayPlugin
 {
@@ -56,7 +58,7 @@ public class EbeanPlugin extends PlayPlugin
     cfg.loadFromProperties();
     cfg.setName(name);
     cfg.setClasses((List) Play.classloader.getAllClasses());
-    cfg.setDataSource(new EbeanDataSourceWrapper(dataSource));
+    cfg.setDataSource(dataSource);
     cfg.setRegister("default".equals(name));
     cfg.setDefaultServer("default".equals(name));
     cfg.add(new EbeanModelAdapter());
@@ -213,8 +215,8 @@ public class EbeanPlugin extends PlayPlugin
   @SuppressWarnings("unchecked")
   public Model.Factory modelFactory(Class<? extends Model> modelClass)
   {
-    if (EbeanSupport.class.isAssignableFrom(modelClass) && modelClass.isAnnotationPresent(Entity.class)) {
-      return new EbeanModelLoader((Class<EbeanSupport>) modelClass);
+    if (de.peloba.ebean.EbeanSupport.class.isAssignableFrom(modelClass) && modelClass.isAnnotationPresent(Entity.class)) {
+      return new EbeanModelLoader((Class<de.peloba.ebean.EbeanSupport>) modelClass);
     }
     return null;
   }
@@ -223,7 +225,7 @@ public class EbeanPlugin extends PlayPlugin
   @Override
   public Object bind(String name, Class clazz, java.lang.reflect.Type type, Annotation[] annotations, Map<String, String[]> params)
   {
-    if (EbeanSupport.class.isAssignableFrom(clazz)) {
+    if (de.peloba.ebean.EbeanSupport.class.isAssignableFrom(clazz)) {
       String keyName = Model.Manager.factoryFor(clazz).keyName();
       String idKey = name + "." + keyName;
       if (params.containsKey(idKey) && params.get(idKey).length > 0 && params.get(idKey)[0] != null && params.get(idKey)[0].trim().length() > 0) {
@@ -234,9 +236,9 @@ public class EbeanPlugin extends PlayPlugin
         } catch (Exception e) {
           throw new UnexpectedException(e);
         }
-        return EbeanSupport.edit(o, name, params, annotations);
+        return de.peloba.ebean.EbeanSupport.edit(o, name, params, annotations);
       }
-      return EbeanSupport.create(clazz, name, params, annotations);
+      return de.peloba.ebean.EbeanSupport.create(clazz, name, params, annotations);
     }
     return super.bind(name, clazz, type, annotations, params);
   }
@@ -244,8 +246,8 @@ public class EbeanPlugin extends PlayPlugin
   @Override
   public Object bind(String name, Object o, Map<String, String[]> params)
   {
-    if (o instanceof EbeanSupport) {
-      return EbeanSupport.edit(o, name, params, null);
+    if (o instanceof de.peloba.ebean.EbeanSupport) {
+      return de.peloba.ebean.EbeanSupport.edit(o, name, params, null);
     }
     return null;
   }
@@ -253,9 +255,9 @@ public class EbeanPlugin extends PlayPlugin
   public static class EbeanModelLoader implements Model.Factory
   {
 
-    private Class<? extends EbeanSupport> modelClass;
+    private Class<? extends de.peloba.ebean.EbeanSupport> modelClass;
 
-    public EbeanModelLoader(Class<EbeanSupport> modelClass)
+    public EbeanModelLoader(Class<de.peloba.ebean.EbeanSupport> modelClass)
     {
       this.modelClass = modelClass;
     }
@@ -306,7 +308,7 @@ public class EbeanPlugin extends PlayPlugin
       }
 
       if (filter != null) { 
-        q.where(filter);
+        q.where().raw(filter);
         if (filter.contains(":keywords") && keywords != null)  q.setParameter("keywords",  "%" + keywords.toLowerCase() + "%");
       }
 
@@ -338,12 +340,12 @@ public class EbeanPlugin extends PlayPlugin
           filter = (filter != null ? "(" + filter + ") and " : "") + "(" + searchQuery + ")";
         }
       }
-      if (filter != null) { 
-        q.where(filter);
+      if (filter != null) {
+        q.where().raw(filter);
         if (filter.contains(":keywords") && keywords != null)  q.setParameter("keywords", "%" + keywords.toLowerCase() + "%");
       }
 
-      return (long) q.findRowCount();
+      return (long) q.findCount();
     }
 
     public void deleteAll()
